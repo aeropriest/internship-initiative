@@ -1,6 +1,9 @@
 {
+  "/_not-found/page": "app/_not-found/page.js",
   "/apply/page": "app/apply/page.js",
-  "/status/[candidateId]/page": "app/status/[candidateId]/page.js",
+  "/page": "app/page.js",
   "/api/manatal/candidates/route": "app/api/manatal/candidates/route.js",
-  "/page": "app/page.js"
+  "/status/[candidateId]/page": "app/status/[candidateId]/page.js",
+  "/api/hireflix/positions/route": "app/api/hireflix/positions/route.js",
+  "/api/manatal/resume/route": "app/api/manatal/resume/route.js"
 }

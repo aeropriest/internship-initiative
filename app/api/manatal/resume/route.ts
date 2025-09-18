@@ -26,7 +26,7 @@ async function uploadDocumentToManatal(candidateId: number, file: File): Promise
   console.log(`   📋 Type: ${documentData.document_type}`);
 
   const startTime = Date.now();
-  // Use the correct resume upload endpoint from Manatal documentation
+  // Use the resume-specific endpoint that worked in our earlier tests
   const response = await fetch(`https://api.manatal.com/open/v3/candidates/${candidateId}/resume/`, {
     method: 'POST',
     headers: {

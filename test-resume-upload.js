@@ -10,7 +10,7 @@ async function testResumeUpload() {
   console.log('📄 Testing Resume Upload with Real File');
   console.log('=' .repeat(60));
   
-  const resumePath = path.join(process.env.HOME, 'Downloads', 'Ashok Jaiswal - Web3 Tech Lead.pdf');
+  const resumePath = path.join(process.env.HOME, 'Downloads', 'Brian Gibson - CV.pdf');
   
   // Check if file exists
   if (!fs.existsSync(resumePath)) {
@@ -67,7 +67,7 @@ async function testResumeUpload() {
     const formData = new FormData();
     
     // Create a File object from the buffer
-    const resumeFile = new File([resumeBuffer], 'Ashok_Jaiswal_Web3_Tech_Lead.pdf', {
+    const resumeFile = new File([resumeBuffer], 'Brian_Gibson_CV.pdf', {
       type: 'application/pdf'
     });
     
