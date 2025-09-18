@@ -37,14 +37,13 @@ export async function POST(request: NextRequest) {
     console.log(`👤 Candidate: ${data.candidate_name} (${data.candidate_email})`);
     console.log(`📋 Position ID: ${data.position_id}`);
     
-    // Create interview invitation in Hireflix with external_id for webhook tracking
+    // Create interview invitation in Hireflix (simplified without externalId)
     const inviteMutation = `
-      mutation InviteCandidate($positionId: String!, $candidateEmail: String!, $candidateName: String!, $externalId: String) {
+      mutation InviteCandidate($positionId: String!, $candidateEmail: String!, $candidateName: String!) {
         Position(id: $positionId) {
           invite(candidate: { 
             email: $candidateEmail, 
-            name: $candidateName,
-            externalId: $externalId
+            name: $candidateName
           }) {
             url {
               public
@@ -58,8 +57,7 @@ export async function POST(request: NextRequest) {
     const variables = {
       positionId: data.position_id,
       candidateEmail: data.candidate_email,
-      candidateName: data.candidate_name,
-      externalId: data.manatal_candidate_id || `candidate_${Date.now()}`
+      candidateName: data.candidate_name
     };
     
     console.log('📤 Hireflix Interview API: Sending GraphQL mutation...');
@@ -91,15 +89,20 @@ export async function POST(request: NextRequest) {
       const errorMessages = responseData.errors.map((e: any) => e.message);
       if (responseData.errors.some((e: any) => e.code === 409)) {
         console.log('💡 Hireflix Interview API: Candidate already invited to this position');
+        const mockId = `existing_${data.position_id}_${Date.now()}`;
         return NextResponse.json({
           success: true,
           interview: {
-            id: `existing_${data.position_id}_${Date.now()}`,
+            id: mockId,
             position_id: data.position_id,
             candidate_email: data.candidate_email,
             interview_url: 'https://app.hireflix.com/existing-interview',
             status: 'already_invited',
             created_at: new Date().toISOString(),
+            // Add mock data for testing
+            transcript_url: `https://mock-transcript-url.com/transcript_${mockId}.txt`,
+            resume_url: `https://mock-resume-url.com/resume_${mockId}.pdf`,
+            manatal_candidate_id: data.manatal_candidate_id
           },
           message: 'Candidate was already invited to this position'
         });
@@ -133,6 +136,10 @@ export async function POST(request: NextRequest) {
         interview_url: interview.url.public,
         status: 'pending',
         created_at: new Date().toISOString(),
+        // Add mock data for testing
+        transcript_url: `https://mock-transcript-url.com/transcript_${interview.id}.txt`,
+        resume_url: `https://mock-resume-url.com/resume_${interview.id}.pdf`,
+        manatal_candidate_id: data.manatal_candidate_id
       }
     };
     

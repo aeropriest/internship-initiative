@@ -84,21 +84,32 @@ const ApplicationForm: React.FC = () => {
         name
       );
 
-      // 5. Send confirmation email
-      const emailHtml = createConfirmationEmailHtml(name);
-      await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${RESEND_API_KEY}`
-        },
-        body: JSON.stringify({
-          from: RESEND_FROM_EMAIL,
-          to: [email],
-          subject: 'Your Application to the Global Internship Initiative',
-          html: emailHtml,
-        })
-      });
+      // 5. Send confirmation email (COMMENTED OUT FOR TESTING)
+      // try {
+      //   const appUrl = window.location.origin;
+      //   const emailHtml = createConfirmationEmailHtml(name, appUrl);
+      //   const emailResponse = await fetch('/api/resend/send-email', {
+      //     method: 'POST',
+      //     headers: {
+      //       'Content-Type': 'application/json',
+      //     },
+      //     body: JSON.stringify({
+      //       to: [email],
+      //       subject: 'Your Application to the Global Internship Initiative',
+      //       html: emailHtml,
+      //     })
+      //   });
+      //   
+      //   if (emailResponse.ok) {
+      //     console.log('✅ Confirmation email sent successfully');
+      //   } else {
+      //     console.warn('⚠️ Email sending failed, but application was processed');
+      //   }
+      // } catch (emailError) {
+      //   console.warn('⚠️ Email sending failed, but application was processed:', emailError);
+      // }
+      
+      console.log('📧 Email sending temporarily disabled for testing');
 
       // Save candidate info to localStorage for status tracking
       localStorage.setItem(`candidate_info_${candidateId}`, JSON.stringify({ 

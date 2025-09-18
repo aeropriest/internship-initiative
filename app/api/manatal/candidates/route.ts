@@ -32,21 +32,22 @@ async function createManatalCandidate(data: CandidateData): Promise<any> {
   console.log('🔄 Manatal: Starting candidate creation process...');
   const { score, tags } = calculateCandidateScore(data);
   
-  // Manatal API expects specific field structure
+  // Manatal API expects specific field structure (matching reference project)
   const manatalData = {
     first_name: data.firstName,
     last_name: data.lastName,
     full_name: `${data.firstName} ${data.lastName}`, // Required field
     email: data.email,
     phone: data.phone || '',
-    source: 'Global Internship Initiative Website',
+    source: 'Global Internship Initiative Website V2',
     tags: tags,
-    // Custom fields for additional data
+    // Custom fields for additional data (matching reference project structure)
     custom_fields: {
       position_applied: data.positionTitle || 'General Application',
       application_notes: data.notes || '',
       candidate_score: score,
-      application_source: 'Next.js Website'
+      application_source: 'Next.js Website V2',
+      application_flow: 'V2 - Direct Application Form'
     }
   };
 
