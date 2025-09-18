@@ -4,7 +4,14 @@ const nextConfig = {
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
   },
   images: {
-    domains: ['images.pexels.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.pexels.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
     formats: ['image/webp', 'image/avif'],
   },
 }

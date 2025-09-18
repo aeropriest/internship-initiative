@@ -51,8 +51,42 @@ pnpm start
 
 ## Features
 
-- **Landing Page**: Showcases the Global Internship Initiative
-- **Application Form**: Allows candidates to express interest
-- **Status Tracking**: Tracks application status with unique IDs
+- **Landing Page**: Showcases the Global Internship Initiative with modern design
+- **Position Management**: Fetches open positions from Hireflix API
+- **Application Form**: Complete application with resume upload and position selection
+- **Resume Upload**: Drag-and-drop file upload with validation
+- **Status Tracking**: Real-time application status with progress indicators
+- **Social Sharing**: Encourage candidates to share their applications
 - **Email Integration**: Automated email notifications via Resend
-- **API Integration**: Connects with Manatal and Hireflix APIs
+- **API Integration**: 
+  - **Hireflix**: Position management and interview scheduling
+  - **Manatal**: Candidate management and resume processing
+  - **Resend**: Email notifications
+- **Webhook Support**: Manatal webhook endpoint for status updates
+
+## API Integrations
+
+### Hireflix API
+- Fetch open positions
+- Create video interviews
+- Position management
+
+### Manatal API  
+- Create candidate profiles
+- Upload and process resumes
+- Track application status
+- Webhook notifications
+
+### Resend API
+- Send confirmation emails
+- Application status updates
+- Professional email templates
+
+## Application Flow
+
+1. **Browse Positions**: Candidates view available internship positions
+2. **Submit Application**: Complete form with personal details and resume
+3. **Resume Processing**: Automatic upload to Manatal ATS
+4. **Status Updates**: Real-time progress tracking via webhooks
+5. **Social Sharing**: Encourage network engagement
+6. **Interview Scheduling**: Automatic Hireflix integration

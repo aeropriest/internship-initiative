@@ -7,85 +7,100 @@ import WhatsAppIcon from '../../../components/WhatsappIcon';
 import { RESEND_API_KEY, RESEND_FROM_EMAIL } from '../../../config';
 import { createInterviewCompleteEmailHtml } from '../../../services/email';
 
-type ApplicationStatus = 'Unknown' | 'Interview Pending' | 'Interview Received' | 'Error';
+type ApplicationStatus = 'Unknown' | 'Application Submitted' | 'Resume Processing' | 'Resume Uploaded' | 'Interview Scheduled' | 'Interview Completed' | 'Under Review' | 'Error';
 
 interface StatusInfo {
     status: ApplicationStatus;
     timestamp?: string;
 }
 
+interface CandidateInfo {
+    name: string;
+    email: string;
+    position?: string;
+    candidateId: string;
+}
+
 export default function StatusPage() {
   const params = useParams();
   const candidateId = params.candidateId as string;
   const [statusInfo, setStatusInfo] = useState<StatusInfo>({ status: 'Unknown' });
+  const [candidateInfo, setCandidateInfo] = useState<CandidateInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const appUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
-  const socialLinks = {
-    twitter: `https://twitter.com/intent/tweet?text=I've%20just%20completed%20my%20video%20interview%20for%20the%20Global%20Internship%20Initiative%20with%2059club%20Academy!%20Wish%20me%20luck!&url=${encodeURIComponent(appUrl)}`,
-    linkedin: `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(appUrl)}&title=I've%20Completed%20My%20Video%20Interview!&summary=I've%20just%20completed%20my%20video%20interview%20for%20the%20Global%20Internship%20Initiative%20with%2059club%20Academy!`,
-    facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(appUrl)}`,
-    whatsapp: `https://api.whatsapp.com/send?text=I've%20just%20completed%20my%20video%20interview%20for%20the%20Global%20Internship%20Initiative%20with%2059club%20Academy!%20Check%20it%20out:%20${encodeURIComponent(appUrl)}`,
+  const getSocialLinks = (candidateInfo: CandidateInfo | null) => {
+    const position = candidateInfo?.position || 'an internship position';
+    const message = `I've just applied for ${position} with the Global Internship Initiative! 🌍 Excited about this opportunity to work with leading clubs worldwide. #GlobalInternship #CareerOpportunity`;
+    
+    return {
+      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(appUrl)}`,
+      linkedin: `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(appUrl)}&title=Applied for Global Internship Initiative&summary=${encodeURIComponent(message)}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(appUrl)}&quote=${encodeURIComponent(message)}`,
+      whatsapp: `https://api.whatsapp.com/send?text=${encodeURIComponent(message + ' ' + appUrl)}`,
+    };
   };
   
   useEffect(() => {
-    const simulateWebhookReception = async () => {
+    const loadApplicationStatus = async () => {
       if (!candidateId) {
           setStatusInfo({ status: 'Error' });
           setIsLoading(false);
           return;
       }
 
-      // Check if status update has already been processed to prevent multiple emails
-      const alreadyProcessed = localStorage.getItem(`status_update_sent_${candidateId}`);
-      if (alreadyProcessed) {
-          const storedStatus = JSON.parse(localStorage.getItem(`application_status_${candidateId}`) || '{}');
-          setStatusInfo(storedStatus.status ? storedStatus : { status: 'Interview Received' });
-          setIsLoading(false);
-          return;
-      }
-      
       try {
-        const userInfoStr = localStorage.getItem(`candidate_info_${candidateId}`);
-        if (!userInfoStr) {
-          throw new Error("Candidate details not found. Could not send confirmation.");
+        // Load candidate info
+        const candidateInfoStr = localStorage.getItem(`candidate_info_${candidateId}`);
+        if (candidateInfoStr) {
+          const info = JSON.parse(candidateInfoStr);
+          setCandidateInfo(info);
         }
-        const userInfo = JSON.parse(userInfoStr);
 
-        // 1. Update Status in our "system" (localStorage)
-        const newStatus: StatusInfo = { status: 'Interview Received', timestamp: new Date().toISOString() };
-        localStorage.setItem(`application_status_${candidateId}`, JSON.stringify(newStatus));
-        setStatusInfo(newStatus);
-        
-        // 2. Trigger branded email receipt
-        const emailHtml = createInterviewCompleteEmailHtml(userInfo.name);
-        await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${RESEND_API_KEY}`
-            },
-            body: JSON.stringify({
-                from: RESEND_FROM_EMAIL,
-                to: [userInfo.email],
-                subject: 'We Have Received Your Interview!',
-                html: emailHtml,
-            })
-        });
+        // Load application status
+        const storedStatusStr = localStorage.getItem(`application_status_${candidateId}`);
+        if (storedStatusStr) {
+          const storedStatus = JSON.parse(storedStatusStr);
+          setStatusInfo(storedStatus);
+        } else {
+          setStatusInfo({ status: 'Application Submitted', timestamp: new Date().toISOString() });
+        }
 
-        // 3. Mark as processed
-        localStorage.setItem(`status_update_sent_${candidateId}`, 'true');
+        // Simulate status progression (in real app, this would come from webhooks)
+        setTimeout(() => {
+          setStatusInfo({ status: 'Resume Processing', timestamp: new Date().toISOString() });
+          localStorage.setItem(`application_status_${candidateId}`, JSON.stringify({ 
+            status: 'Resume Processing', 
+            timestamp: new Date().toISOString() 
+          }));
+        }, 2000);
+
+        setTimeout(() => {
+          setStatusInfo({ status: 'Resume Uploaded', timestamp: new Date().toISOString() });
+          localStorage.setItem(`application_status_${candidateId}`, JSON.stringify({ 
+            status: 'Resume Uploaded', 
+            timestamp: new Date().toISOString() 
+          }));
+        }, 4000);
+
+        setTimeout(() => {
+          setStatusInfo({ status: 'Under Review', timestamp: new Date().toISOString() });
+          localStorage.setItem(`application_status_${candidateId}`, JSON.stringify({ 
+            status: 'Under Review', 
+            timestamp: new Date().toISOString() 
+          }));
+        }, 6000);
 
       } catch (error) {
-        console.error("Webhook simulation failed:", error);
+        console.error("Failed to load application status:", error);
         setStatusInfo({ status: 'Error' });
       } finally {
         setIsLoading(false);
       }
     };
 
-    simulateWebhookReception();
+    loadApplicationStatus();
   }, [candidateId]);
 
 
@@ -98,27 +113,117 @@ export default function StatusPage() {
       )
   }
 
+  const socialLinks = getSocialLinks(candidateInfo);
+  
+  const getStatusIcon = (status: ApplicationStatus) => {
+    switch (status) {
+      case 'Application Submitted':
+      case 'Resume Processing':
+      case 'Resume Uploaded':
+      case 'Under Review':
+        return <CheckCircle className="h-20 w-20 text-green-500 mx-auto mb-6" />;
+      case 'Error':
+        return <div className="h-20 w-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <span className="text-red-500 text-2xl">!</span>
+        </div>;
+      default:
+        return <Loader className="h-20 w-20 text-blue-500 mx-auto mb-6 animate-spin" />;
+    }
+  };
+
+  const getStatusMessage = (status: ApplicationStatus) => {
+    switch (status) {
+      case 'Application Submitted':
+        return {
+          title: 'Application Submitted Successfully! 🎉',
+          message: 'Thank you for your application! We have received your information and resume.'
+        };
+      case 'Resume Processing':
+        return {
+          title: 'Processing Your Resume...',
+          message: 'Our team is reviewing your resume and qualifications.'
+        };
+      case 'Resume Uploaded':
+        return {
+          title: 'Resume Successfully Processed! ✅',
+          message: 'Your resume has been processed and added to your candidate profile.'
+        };
+      case 'Under Review':
+        return {
+          title: 'Application Under Review 📋',
+          message: 'Our hiring team is reviewing your application. We will be in touch with next steps soon!'
+        };
+      case 'Error':
+        return {
+          title: 'Application Error',
+          message: 'There was an issue with your application. Please contact support.'
+        };
+      default:
+        return {
+          title: 'Processing Application...',
+          message: 'Please wait while we process your application.'
+        };
+    }
+  };
+
+  const statusDisplay = getStatusMessage(statusInfo.status);
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center pt-24 pb-12 px-4 bg-gray-50">
       <div className="bg-white p-8 md:p-12 rounded-2xl border border-gray-200 shadow-xl w-full max-w-2xl text-center">
-        <CheckCircle className="h-20 w-20 text-green-500 mx-auto mb-6" />
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Interview Complete!</h1>
+        {getStatusIcon(statusInfo.status)}
+        
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+          {statusDisplay.title}
+        </h1>
+        
         <p className="text-gray-600 text-lg mb-8">
-          Thank you for your submission. We've received your video interview and will be in touch with the next steps shortly.
+          {statusDisplay.message}
         </p>
-        <div className="bg-gray-100 p-4 rounded-lg">
-          <p className="text-sm text-gray-700">Application ID: <span className="font-mono bg-gray-200 text-gray-800 py-1 px-2 rounded">{candidateId}</span></p>
-           <p className="text-sm text-gray-700 mt-2">Current Status: <span className="font-semibold text-purple-700">{statusInfo.status}</span></p>
-        </div>
+
+        {candidateInfo && (
+          <div className="bg-gray-50 p-6 rounded-lg mb-8">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Application Details</h3>
+            <div className="space-y-2 text-sm text-gray-600">
+              <p><span className="font-medium">Name:</span> {candidateInfo.name}</p>
+              <p><span className="font-medium">Email:</span> {candidateInfo.email}</p>
+              {candidateInfo.position && (
+                <p><span className="font-medium">Position:</span> {candidateInfo.position}</p>
+              )}
+              <p><span className="font-medium">Application ID:</span> 
+                <span className="font-mono bg-gray-200 text-gray-800 py-1 px-2 rounded ml-2">{candidateId}</span>
+              </p>
+              <p><span className="font-medium">Status:</span> 
+                <span className="font-semibold text-purple-700 ml-2">{statusInfo.status}</span>
+              </p>
+              {statusInfo.timestamp && (
+                <p><span className="font-medium">Last Updated:</span> {new Date(statusInfo.timestamp).toLocaleString()}</p>
+              )}
+            </div>
+          </div>
+        )}
         
         <div className="mt-10 pt-8 border-t border-gray-200">
-            <h3 className="text-xl font-semibold text-gray-700 mb-6">Share Your Journey</h3>
-            <div className="flex justify-center items-center space-x-6">
-                <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-[#1DA1F2] transition-colors"><Twitter className="h-8 w-8" /></a>
-                <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-[#0A66C2] transition-colors"><Linkedin className="h-8 w-8" /></a>
-                <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-[#1877F2] transition-colors"><Facebook className="h-8 w-8" /></a>
-                <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-[#25D366] transition-colors"><WhatsAppIcon className="h-8 w-8" /></a>
-            </div>
+          <h3 className="text-xl font-semibold text-gray-700 mb-4">Share Your Application! 🚀</h3>
+          <p className="text-gray-600 mb-6">Let your network know about this exciting opportunity!</p>
+          <div className="flex justify-center items-center space-x-6">
+            <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" 
+               className="text-gray-500 hover:text-[#1DA1F2] transition-colors transform hover:scale-110">
+              <Twitter className="h-8 w-8" />
+            </a>
+            <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" 
+               className="text-gray-500 hover:text-[#0A66C2] transition-colors transform hover:scale-110">
+              <Linkedin className="h-8 w-8" />
+            </a>
+            <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" 
+               className="text-gray-500 hover:text-[#1877F2] transition-colors transform hover:scale-110">
+              <Facebook className="h-8 w-8" />
+            </a>
+            <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" 
+               className="text-gray-500 hover:text-[#25D366] transition-colors transform hover:scale-110">
+              <WhatsAppIcon className="h-8 w-8" />
+            </a>
+          </div>
         </div>
       </div>
     </div>

@@ -1,6 +1,5 @@
-// WARNING: Storing API keys in client-side code is highly insecure and should not be done in a production environment.
-// These keys are exposed to anyone who inspects the browser's code.
-// In a real application, this logic should be handled by a secure backend server.
+// Environment variables for API routes
+// Using NEXT_PUBLIC_ prefix as configured in .env.local
 
 export const MANATAL_API_TOKEN = process.env.NEXT_PUBLIC_MANATAL_API_TOKEN || '51ce36b3ac06f113f418f0e0f47391e7471090c7';
 export const HIREFLIX_API_KEY = process.env.NEXT_PUBLIC_HIREFLIX_API_KEY || 'dde0fc60-bd68-4166-853e-4c852faa94db';
