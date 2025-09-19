@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import GradientButton from './GradientButton';
 
 const Header: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -27,12 +28,13 @@ const Header: React.FC = () => {
             className="object-contain"
           />
         </Link>
-        <Link 
-            href="/apply" 
-            className="inline-block px-6 py-3 font-semibold text-base text-white bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-          >
-            I'm Interested!
-          </Link>
+        <GradientButton 
+          href="/apply"
+          variant="outline"
+          size="md"
+        >
+          I'm interested!
+        </GradientButton>
 
       </div>
     </header>

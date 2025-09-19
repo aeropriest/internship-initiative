@@ -1,0 +1,80 @@
+/* Gradient border input styles for 59club Academy branding */
+.gradient-border-input {
+  background: white;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  padding: 12px 16px;
+  transition: all 0.3s ease;
+  background-clip: padding-box;
+}
+
+.gradient-border-input:focus {
+  outline: none;
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(135deg, #ec4899, #8b5cf6, #3b82f6) border-box;
+  border: 2px solid transparent;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+}
+
+.gradient-border-input:hover {
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.1);
+}
+
+/* Gradient button styles */
+.gradient-button {
+  background: linear-gradient(135deg, #ec4899, #8b5cf6, #3b82f6);
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  color: white;
+  font-weight: 600;
+  padding: 12px 32px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.gradient-button:hover {
+  background: linear-gradient(135deg, #db2777, #7c3aed, #2563eb);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+  transform: translateY(-1px);
+}
+
+.gradient-button:active {
+  transform: translateY(0);
+}
+
+/* Gradient border button (outline style) */
+.gradient-border-button {
+  background: white;
+  background-clip: padding-box;
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  color: #6b7280;
+  font-weight: 600;
+  padding: 12px 32px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.gradient-border-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  background: linear-gradient(135deg, #ec4899, #8b5cf6, #3b82f6);
+  border-radius: inherit;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: xor;
+  -webkit-mask-composite: xor;
+}
+
+.gradient-border-button:hover {
+  background: linear-gradient(135deg, #ec4899, #8b5cf6, #3b82f6);
+  color: white;
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+  transform: translateY(-1px);
+}
+
+.gradient-border-button:hover::before {
+  opacity: 0;
+}

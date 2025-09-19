@@ -8,6 +8,8 @@ import { createConfirmationEmailHtml } from '../services/email';
 import { HireflixService, HireflixPosition, HireflixInterviewResponse } from '../services/hireflix';
 import { ManatalService } from '../services/manatal';
 import FileDropzone from './FileDropzone';
+import GradientButton from './GradientButton';
+import '../styles/gradient-inputs.css';
 
 
 type FormState = 'idle' | 'submitting' | 'success' | 'error' | 'existing';
@@ -384,13 +386,15 @@ const ApplicationForm: React.FC = () => {
               <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
                 🎬 Auto-close enabled
               </div>
-              <button
+              <GradientButton
                 onClick={handleCloseInterview}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                variant="filled"
+                size="sm"
+                className="bg-red-500 hover:bg-red-600 border-red-500"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4 mr-2" />
                 Close Interview
-              </button>
+              </GradientButton>
             </div>
           </div>
           <div className="flex-1 p-4">
@@ -461,22 +465,26 @@ const ApplicationForm: React.FC = () => {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
-          <button
+          <GradientButton
             onClick={() => router.push(`/status/${candidate.id}`)}
-            className="flex-1 bg-pink-500 hover:bg-pink-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+            variant="filled"
+            size="md"
+            className="flex-1"
           >
             View Application Status
-          </button>
-          <button
+          </GradientButton>
+          <GradientButton
             onClick={() => {
               setFormState('idle');
               setExistingCandidate(null);
               setEmail('');
             }}
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-colors"
+            variant="outline"
+            size="md"
+            className="flex-1"
           >
             Apply with Different Email
-          </button>
+          </GradientButton>
         </div>
       </div>
     );
@@ -531,7 +539,7 @@ const ApplicationForm: React.FC = () => {
                     value={name} 
                     onChange={e => setName(e.target.value)} 
                     required 
-                    className="w-full bg-gray-100 border border-gray-300 rounded-lg py-3 px-4 text-gray-900 focus:ring-2 focus:ring-pink-500 focus:outline-none focus:border-pink-500 transition-all"
+                    className="w-full gradient-border-input text-gray-900"
                     disabled={formState === 'submitting'}
                   />
                 </div>
@@ -552,7 +560,7 @@ const ApplicationForm: React.FC = () => {
                       value={email} 
                       onChange={e => setEmail(e.target.value)} 
                       required 
-                      className="w-full bg-gray-100 border border-gray-300 rounded-lg py-3 px-4 pr-10 text-gray-900 focus:ring-2 focus:ring-pink-500 focus:outline-none focus:border-pink-500 transition-all"
+                      className="w-full gradient-border-input text-gray-900 pr-10"
                       disabled={formState === 'submitting'}
                     />
                     {checkingExisting && (
@@ -572,7 +580,7 @@ const ApplicationForm: React.FC = () => {
                     id="phone" 
                     value={phone} 
                     onChange={e => setPhone(e.target.value)} 
-                    className="w-full bg-gray-100 border border-gray-300 rounded-lg py-3 px-4 text-gray-900 focus:ring-2 focus:ring-pink-500 focus:outline-none focus:border-pink-500 transition-all"
+                    className="w-full gradient-border-input text-gray-900"
                     disabled={formState === 'submitting'}
                   />
                 </div>
@@ -585,7 +593,7 @@ const ApplicationForm: React.FC = () => {
                     onChange={e => setLocation(e.target.value)} 
                     required
                     placeholder="e.g., New York, USA"
-                    className="w-full bg-gray-100 border border-gray-300 rounded-lg py-3 px-4 text-gray-900 focus:ring-2 focus:ring-pink-500 focus:outline-none focus:border-pink-500 transition-all"
+                    className="w-full gradient-border-input text-gray-900"
                     disabled={formState === 'submitting'}
                   />
                 </div>
@@ -604,7 +612,7 @@ const ApplicationForm: React.FC = () => {
                   value={selectedPosition}
                   onChange={e => setSelectedPosition(e.target.value)}
                   required
-                  className="w-full bg-gray-100 border border-gray-300 rounded-lg py-3 px-4 text-gray-900 focus:ring-2 focus:ring-pink-500 focus:outline-none focus:border-pink-500 transition-all"
+                  className="w-full gradient-border-input text-gray-900"
                   disabled={formState === 'submitting'}
                 >
                   <option value="">Select a position...</option>
@@ -630,7 +638,7 @@ const ApplicationForm: React.FC = () => {
                 onChange={e => setMessage(e.target.value)} 
                 rows={4} 
                 placeholder="Tell us about your interests, experience, or any questions you have..."
-                className="w-full bg-gray-100 border border-gray-300 rounded-lg py-3 px-4 text-gray-900 focus:ring-2 focus:ring-pink-500 focus:outline-none focus:border-pink-500 transition-all"
+                className="w-full gradient-border-input text-gray-900 resize-none"
                 disabled={formState === 'submitting'}
               />
             </div>
@@ -648,19 +656,16 @@ const ApplicationForm: React.FC = () => {
             )}
             
             <div>
-              <button 
-                type="submit" 
+              <GradientButton
+                type="submit"
                 disabled={formState === 'submitting'}
-                className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-3 px-4 rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center border-0 outline-none shadow-lg hover:shadow-xl"
+                loading={formState === 'submitting'}
+                variant="filled"
+                size="lg"
+                className="w-full"
               >
-                {formState === 'submitting' && (
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                )}
                 {formState === 'submitting' ? 'Submitting Application...' : 'Submit Application'}
-              </button>
+              </GradientButton>
             </div>
         </form>
     </div>

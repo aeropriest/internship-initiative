@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import GradientButton from './GradientButton';
 
 const Hero: React.FC = () => {
   return (
@@ -32,12 +33,15 @@ const Hero: React.FC = () => {
             Initiative
           </h1>
           
-          <Link 
-            href="/apply" 
-            className="inline-block px-10 py-4 mt-12 font-semibold text-lg text-white bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-          >
-            I'm Interested!
-          </Link>
+          <div className="mt-12">
+            <GradientButton 
+              href="/apply"
+              variant="outline"
+              size="lg"
+            >
+              I'm Interested!
+            </GradientButton>
+          </div>
           
           <div className="mt-20 flex items-center space-x-2 text-gray-400">
             <span>Powered by</span>
