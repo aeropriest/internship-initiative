@@ -20,7 +20,6 @@ export default function HomePage() {
   return (
     <>
       <Hero />
-
       <Section id="goals" title="The Club & Hospitality Industry faces two pressing challenges...">
         <div className="space-y-12 max-w-4xl mx-auto">
           <div className="bg-white p-8 rounded-2xl shadow-lg relative border border-gray-200">
