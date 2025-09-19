@@ -143,7 +143,7 @@ async function testManatalConnectivity(): Promise<boolean> {
 }
 
 export async function POST(request: NextRequest) {
-  let candidateData: CandidateData;
+  let candidateData: CandidateData | undefined;
   
   try {
     console.log('🔄 Manatal Candidate API: Received candidate creation request');
