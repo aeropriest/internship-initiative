@@ -27,6 +27,7 @@ const ApplicationForm: React.FC = () => {
   const [showInterviewIframe, setShowInterviewIframe] = useState(false);
   const [interviewUrl, setInterviewUrl] = useState('');
   const [candidateId, setCandidateId] = useState<number | null>(null);
+  const [interviewId, setInterviewId] = useState<string | null>(null);
   const router = useRouter();
 
   // Load available positions on component mount
@@ -442,7 +443,7 @@ const ApplicationForm: React.FC = () => {
               <button 
                 type="submit" 
                 disabled={formState === 'submitting'}
-                className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-3 px-4 rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold py-3 px-4 rounded-lg hover:from-pink-600 hover:to-purple-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center border-0 outline-none shadow-lg hover:shadow-xl"
               >
                 {formState === 'submitting' && (
                     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

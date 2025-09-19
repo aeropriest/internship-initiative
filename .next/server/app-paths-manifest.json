@@ -1,8 +1,1 @@
-{
-  "/apply/page": "app/apply/page.js",
-  "/api/hireflix/interviews/route": "app/api/hireflix/interviews/route.js",
-  "/api/hireflix/interview-results/route": "app/api/hireflix/interview-results/route.js",
-  "/status/[candidateId]/page": "app/status/[candidateId]/page.js",
-  "/api/manatal/resume/route": "app/api/manatal/resume/route.js",
-  "/api/manatal/candidates/route": "app/api/manatal/candidates/route.js"
-}
+{}

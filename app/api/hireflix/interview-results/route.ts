@@ -110,13 +110,16 @@ export async function POST(request: NextRequest) {
     };
     
     console.log('📤 Hireflix Interview Results API: Sending GraphQL query...');
+    console.log('🔑 API Key being used:', HIREFLIX_API_KEY ? `${HIREFLIX_API_KEY.substring(0, 8)}...` : 'NOT SET');
+    console.log('📋 GraphQL Query:', hireflixQuery);
+    console.log('📋 Variables:', JSON.stringify(hireflixVariables, null, 2));
     
     const startTime = Date.now();
     const hireflixResponse = await fetch('https://api.hireflix.com/me', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${HIREFLIX_API_KEY}`,
+        'X-API-KEY': HIREFLIX_API_KEY,
       },
       body: JSON.stringify({
         query: hireflixQuery,

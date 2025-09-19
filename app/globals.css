@@ -19,6 +19,29 @@ a {
   box-sizing: border-box;
 }
 
+/* Button reset to prevent browser default styling */
+button, 
+input[type="submit"], 
+input[type="button"], 
+.btn {
+  border: none;
+  outline: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Ensure links don't have default styling */
+a, 
+a:hover, 
+a:focus, 
+a:active {
+  text-decoration: none;
+  outline: none;
+}
+
 .animation-delay-4000 {
   animation-delay: 4s;
 }

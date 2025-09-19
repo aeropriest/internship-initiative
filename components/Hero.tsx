@@ -34,11 +34,9 @@ const Hero: React.FC = () => {
           
           <Link 
             href="/apply" 
-            className="relative inline-block px-10 py-4 mt-12 font-semibold text-lg text-white group"
+            className="inline-block px-10 py-4 mt-12 font-semibold text-lg text-white bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
           >
-            <span className="absolute inset-0 w-full h-full transition duration-300 ease-out transform -translate-x-2 -translate-y-2 bg-gradient-to-r from-pink-500 to-purple-600 group-hover:translate-x-0 group-hover:translate-y-0 rounded-lg"></span>
-            <span className="absolute inset-0 w-full h-full border-2 border-white rounded-lg"></span>
-            <span className="relative">I'm Interested!</span>
+            I'm Interested!
           </Link>
           
           <div className="mt-20 flex items-center space-x-2 text-gray-400">
