@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { CheckCircle, Twitter, Linkedin, Facebook, Loader } from 'lucide-react';
-import WhatsAppIcon from '../../../components/WhatsappIcon';
 import { RESEND_API_KEY, RESEND_FROM_EMAIL } from '../../../config';
 import { createInterviewCompleteEmailHtml } from '../../../services/email';
 import {FaFacebook, FaLinkedin, FaTwitter, FaWhatsapp} from 'react-icons/fa';

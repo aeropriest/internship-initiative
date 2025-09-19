@@ -17,9 +17,9 @@ const Header: React.FC = () => {
   }, []);
 
   return (
-    <header className={`absolute top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-transparent shadow-md' : 'bg-transparent'}`}>
+    <header className={`absolute top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-transparent shadow-md' : 'bg-black/10'}`}>
       <div className="container mx-auto px-0 py-4 flex justify-between items-center">
-        <Link href="/" className="flex items-center space-x-3">
+        <Link href="/" className="flex items-center space-x-3" style={{ marginLeft: '-40px' }}>
           <Image 
             src="/logo.png" 
             alt="Logo" 

@@ -42,7 +42,7 @@ export default function HomePage() {
             </p>
           </div>
           <div className="bg-gradient-to-r from-purple-600 to-indigo-800 p-8 rounded-2xl shadow-2xl text-center">
-            <p className="text-xl text-white font-medium">
+            <p className="text-lg text-white font-large">
               The Global Internship Initiative has been introduced to solve both problems at once – by connecting motivated graduates with leading clubs worldwide, and giving clubs a reliable talent pipeline.
             </p>
           </div>

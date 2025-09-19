@@ -40,6 +40,7 @@ async function createManatalCandidate(data: CandidateData): Promise<any> {
     full_name: `${data.firstName} ${data.lastName}`, // Required field
     email: data.email,
     phone: data.phone || '',
+    current_position: 'Club Academy Application', // Set current position
     source: 'Global Internship Initiative Website V2',
     tags: tags,
     // Custom fields for additional data (matching reference project structure)
@@ -49,7 +50,8 @@ async function createManatalCandidate(data: CandidateData): Promise<any> {
       application_notes: data.notes || '',
       candidate_score: score,
       application_source: 'Next.js Website V2',
-      application_flow: 'V2 - Direct Application Form'
+      application_flow: 'V2 - Direct Application Form',
+      current_position: 'Club Academy Application' // Also in custom fields for consistency
     }
   };
 
@@ -222,6 +224,7 @@ export async function POST(request: NextRequest) {
         full_name: `${candidateData?.firstName || 'Unknown'} ${candidateData?.lastName || 'Candidate'}`,
         email: candidateData?.email || 'unknown@example.com',
         phone: candidateData?.phone || '',
+        current_position: 'Club Academy Application',
         source: 'Global Internship Initiative Website (Network Issue - Mock Response)',
         tags: ['Global-Internship-Initiative', 'Network-Issue-Fallback'],
         created_at: new Date().toISOString(),
