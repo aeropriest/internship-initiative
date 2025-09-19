@@ -16,9 +16,18 @@ export interface HireflixInterview {
   id: string;
   position_id: string;
   candidate_email: string;
-  interview_url: string;
+  interview_url: string | null;
   status: string;
   created_at: string;
+  existing_candidate?: boolean;
+  manatal_candidate_id?: string;
+}
+
+export interface HireflixInterviewResponse {
+  success: boolean;
+  interview: HireflixInterview;
+  message?: string;
+  user_message?: string;
 }
 
 const HIREFLIX_BASE_URL = 'https://api.hireflix.com/v1';
@@ -52,7 +61,7 @@ export class HireflixService {
     }
   }
 
-  static async createInterview(positionId: string, candidateEmail: string, candidateName: string): Promise<HireflixInterview> {
+  static async createInterview(positionId: string, candidateEmail: string, candidateName: string, manatalCandidateId?: number): Promise<HireflixInterviewResponse> {
     try {
       const response = await fetch('/api/hireflix/interviews', {
         method: 'POST',
@@ -63,6 +72,7 @@ export class HireflixService {
           position_id: positionId,
           candidate_email: candidateEmail,
           candidate_name: candidateName,
+          manatal_candidate_id: manatalCandidateId?.toString(),
         }),
       });
 
@@ -71,7 +81,7 @@ export class HireflixService {
       }
 
       const data = await response.json();
-      return data.interview;
+      return data; // Return the full response object
     } catch (error) {
       console.error('Error creating Hireflix interview:', error);
       throw error;

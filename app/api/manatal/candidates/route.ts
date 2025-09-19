@@ -6,6 +6,7 @@ interface CandidateData {
   lastName: string;
   email: string;
   phone?: string;
+  location?: string;
   notes?: string;
   positionTitle?: string;
 }
@@ -43,6 +44,7 @@ async function createManatalCandidate(data: CandidateData): Promise<any> {
     tags: tags,
     // Custom fields for additional data (matching reference project structure)
     custom_fields: {
+      candidate_location: data.location || '', // Put location in custom fields
       position_applied: data.positionTitle || 'General Application',
       application_notes: data.notes || '',
       candidate_score: score,
@@ -52,6 +54,7 @@ async function createManatalCandidate(data: CandidateData): Promise<any> {
   };
 
   console.log('📤 Manatal: Payload being sent to Manatal API:');
+  console.log('📍 Location field check:', data.location);
   console.log(JSON.stringify(manatalData, null, 2));
   console.log('🌐 Manatal: Making API request to https://api.manatal.com/open/v3/candidates/');
 
@@ -153,6 +156,7 @@ export async function POST(request: NextRequest) {
       lastName: body.lastName,
       email: body.email,
       phone: body.phone,
+      location: body.location,
       notes: body.notes,
       positionTitle: body.positionTitle,
     };

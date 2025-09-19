@@ -87,24 +87,31 @@ export async function POST(request: NextRequest) {
       
       // Handle specific error cases
       const errorMessages = responseData.errors.map((e: any) => e.message);
-      if (responseData.errors.some((e: any) => e.code === 409)) {
+      const hasAlreadyExistsError = responseData.errors.some((e: any) => 
+        e.message === 'candidate-already-exists' || 
+        e.extensions?.code === 409 || 
+        e.code === 409
+      );
+      
+      if (hasAlreadyExistsError) {
         console.log('💡 Hireflix Interview API: Candidate already invited to this position');
-        const mockId = `existing_${data.position_id}_${Date.now()}`;
+        
+        // Try to find existing interview for this candidate
+        // For now, return a graceful response that the UI can handle
         return NextResponse.json({
           success: true,
           interview: {
-            id: mockId,
+            id: `existing_${data.position_id}_${Date.now()}`,
             position_id: data.position_id,
             candidate_email: data.candidate_email,
-            interview_url: 'https://app.hireflix.com/existing-interview',
+            interview_url: null, // No new interview URL since already exists
             status: 'already_invited',
             created_at: new Date().toISOString(),
-            // Add mock data for testing
-            transcript_url: `https://mock-transcript-url.com/transcript_${mockId}.txt`,
-            resume_url: `https://mock-resume-url.com/resume_${mockId}.pdf`,
-            manatal_candidate_id: data.manatal_candidate_id
+            manatal_candidate_id: data.manatal_candidate_id,
+            existing_candidate: true
           },
-          message: 'Candidate was already invited to this position'
+          message: 'This candidate has already been invited to this position. They can use their existing interview link.',
+          user_message: 'You have already been invited to interview for this position. Please check your email for the interview link, or contact us if you need assistance.'
         });
       }
       

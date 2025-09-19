@@ -31,6 +31,7 @@ export class ManatalService {
     lastName: string;
     email: string;
     phone?: string;
+    location?: string;
     notes?: string;
     positionTitle?: string;
   }): Promise<ManatalCandidate> {

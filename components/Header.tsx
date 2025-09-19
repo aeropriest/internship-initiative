@@ -25,7 +25,7 @@ const Header: React.FC = () => {
           className="relative inline-block px-6 py-2 font-medium text-white group"
         >
             <span className="absolute inset-0 w-full h-full transition duration-300 ease-out transform -translate-x-2 -translate-y-2 bg-gradient-to-r from-pink-500 to-purple-600 group-hover:translate-x-0 group-hover:translate-y-0 rounded-lg"></span>
-            <span className="absolute inset-0 w-full h-full rounded-lg"></span>
+            <span className="absolute inset-0 w-full h-full border-2 border-white rounded-lg"></span>
             <span className="relative">Express Interest</span>
         </Link>
       </div>
