@@ -5,7 +5,6 @@ import WavyLines from './WavyLines';
 const Footer: React.FC = () => {
   return (
     <footer className="relative bg-[#100324] pt-20 overflow-hidden">
-      <WavyLines />
       <div className="relative container mx-auto px-6 py-12 text-center text-gray-400">
         <div className="mb-8">
             <h3 className="text-2xl font-bold text-white">Sean Plunkett</h3>
@@ -22,6 +21,7 @@ const Footer: React.FC = () => {
         </div>
         <p>&copy; {new Date().getFullYear()} 59club Academy & Global Talent Solutions. All rights reserved.</p>
       </div>
+      <WavyLines />
     </footer>
   );
 };

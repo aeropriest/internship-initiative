@@ -6,6 +6,7 @@ import { CheckCircle, Twitter, Linkedin, Facebook, Loader } from 'lucide-react';
 import WhatsAppIcon from '../../../components/WhatsappIcon';
 import { RESEND_API_KEY, RESEND_FROM_EMAIL } from '../../../config';
 import { createInterviewCompleteEmailHtml } from '../../../services/email';
+import {FaFacebook, FaLinkedin, FaTwitter, FaWhatsapp} from 'react-icons/fa';
 
 type ApplicationStatus = 'Unknown' | 'Application Submitted' | 'Resume Processing' | 'Resume Uploaded' | 'Interview Scheduled' | 'Interview Completed' | 'Under Review' | 'Error';
 
@@ -209,19 +210,19 @@ export default function StatusPage() {
           <div className="flex justify-center items-center space-x-6">
             <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" 
                className="text-gray-500 hover:text-[#1DA1F2] transition-colors transform hover:scale-110">
-              <Twitter className="h-8 w-8" />
+              <FaTwitter className="h-8 w-8" />
             </a>
             <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" 
                className="text-gray-500 hover:text-[#0A66C2] transition-colors transform hover:scale-110">
-              <Linkedin className="h-8 w-8" />
+              <FaLinkedin className="h-8 w-8" />
             </a>
             <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" 
                className="text-gray-500 hover:text-[#1877F2] transition-colors transform hover:scale-110">
-              <Facebook className="h-8 w-8" />
+              <FaFacebook className="h-8 w-8" />
             </a>
             <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" 
                className="text-gray-500 hover:text-[#25D366] transition-colors transform hover:scale-110">
-              <WhatsAppIcon className="h-8 w-8" />
+              <FaWhatsapp className="h-8 w-8" />
             </a>
           </div>
         </div>

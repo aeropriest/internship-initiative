@@ -10,4 +10,4 @@ export const RESEND_API_KEY = process.env.NEXT_PUBLIC_RESEND_API_KEY || 're_6BZ9
 export const HIREFLIX_POSITION_ID = process.env.NEXT_PUBLIC_HIREFLIX_POSITION_ID || 'global-internship-initiative-2025';
 
 // The 'from' email address for Resend. This must be a domain you have verified with Resend.
-export const RESEND_FROM_EMAIL = process.env.NEXT_PUBLIC_RESEND_FROM_EMAIL || '59club Academy <onboarding@resend.dev>';
+export const RESEND_FROM_EMAIL = process.env.NEXT_PUBLIC_RESEND_FROM_EMAIL || 'Global Internship Initiative <ashok@axarsoft.com>';

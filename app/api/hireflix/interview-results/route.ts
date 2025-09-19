@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { HIREFLIX_API_KEY, MANATAL_API_TOKEN } from '../../../../config';
+import { HIREFLIX_API_KEY, MANATAL_API_TOKEN, RESEND_API_KEY, RESEND_FROM_EMAIL } from '../../../../config';
+import { createInterviewCompleteEmailHtml } from '../../../../services/email';
 
 interface InterviewResultRequest {
   interview_id: string;
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
     // Step 1: Get interview results from Hireflix
     const hireflixQuery = `
       query GetInterview($id: String!) {
-        Interview(id: $id) {
+        interview(id: $id) {
           id
           status
           videoUrl
@@ -172,7 +173,7 @@ export async function POST(request: NextRequest) {
       });
     }
     
-    const interview = hireflixData.data?.Interview;
+    const interview = hireflixData.data?.interview;
     if (!interview) {
       console.error('❌ Hireflix Interview Results API: No interview data found');
       return NextResponse.json(
@@ -222,6 +223,81 @@ export async function POST(request: NextRequest) {
     
     const manatalResult = await manatalResponse.json();
     console.log('✅ Manatal Update API: Candidate updated successfully');
+    
+    // Send interview completion email to candidate
+    try {
+      console.log('📧 Sending interview completion email...');
+      console.log('🔑 Resend API Key available:', RESEND_API_KEY ? 'YES' : 'NO');
+      console.log('📧 From email configured:', RESEND_FROM_EMAIL);
+      
+      // Get candidate details from Manatal to get name and email
+      const candidateResponse = await fetch(`https://api.manatal.com/open/v3/candidates/${data.candidate_id}/`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Token ${MANATAL_API_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (candidateResponse.ok) {
+        const candidateData = await candidateResponse.json();
+        const candidateName = candidateData.first_name || candidateData.full_name || 'Candidate';
+        const candidateEmail = candidateData.email;
+        
+        console.log('👤 Candidate details for email:', {
+          name: candidateName,
+          email: candidateEmail,
+          hasResendKey: !!RESEND_API_KEY
+        });
+        
+        if (candidateEmail && RESEND_API_KEY) {
+          const appUrl = process.env.NODE_ENV === 'production' 
+            ? 'https://your-domain.com' 
+            : 'http://localhost:3001';
+          
+          const emailHtml = createInterviewCompleteEmailHtml(candidateName, appUrl);
+          
+          console.log('📤 Sending email to Resend API...');
+          console.log('📧 Email payload:', {
+            from: RESEND_FROM_EMAIL,
+            to: candidateEmail,
+            subject: 'Interview Complete - Global Internship Initiative'
+          });
+          
+          const emailResponse = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${RESEND_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: RESEND_FROM_EMAIL,
+              to: [candidateEmail],
+              reply_to: 'ashokjaiswal@gmail.com',
+              subject: 'Interview Complete - Global Internship Initiative',
+              html: emailHtml,
+            }),
+          });
+          
+          const emailResponseText = await emailResponse.text();
+          console.log('📥 Resend API response status:', emailResponse.status);
+          console.log('📥 Resend API response:', emailResponseText);
+          
+          if (emailResponse.ok) {
+            console.log('✅ Interview completion email sent successfully');
+          } else {
+            console.error('❌ Failed to send interview completion email:', emailResponseText);
+          }
+        } else {
+          console.warn('⚠️ Missing email address or Resend API key for sending completion email');
+        }
+      } else {
+        console.warn('⚠️ Could not fetch candidate details for email sending');
+      }
+    } catch (emailError) {
+      console.warn('⚠️ Error sending interview completion email:', emailError);
+      // Don't fail the entire request if email fails
+    }
     
     const responsePayload = {
       success: true,

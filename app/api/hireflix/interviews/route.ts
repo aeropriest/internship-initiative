@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     console.log(`👤 Candidate: ${data.candidate_name} (${data.candidate_email})`);
     console.log(`📋 Position ID: ${data.position_id}`);
     
-    // Create interview invitation in Hireflix (simplified without externalId)
+    // Create interview invitation in Hireflix (without externalId as it's not supported)
     const inviteMutation = `
       mutation InviteCandidate($positionId: String!, $candidateEmail: String!, $candidateName: String!) {
         Position(id: $positionId) {
@@ -59,6 +59,8 @@ export async function POST(request: NextRequest) {
       candidateEmail: data.candidate_email,
       candidateName: data.candidate_name
     };
+    
+    console.log(`🆔 External ID (Manatal Candidate ID): ${data.manatal_candidate_id}`);
     
     console.log('📤 Hireflix Interview API: Sending GraphQL mutation...');
     console.log('Variables:', JSON.stringify(variables, null, 2));

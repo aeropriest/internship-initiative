@@ -10,7 +10,7 @@ import { ManatalService } from '../services/manatal';
 import FileDropzone from './FileDropzone';
 
 
-type FormState = 'idle' | 'submitting' | 'success' | 'error';
+type FormState = 'idle' | 'submitting' | 'success' | 'error' | 'existing';
 
 const ApplicationForm: React.FC = () => {
   const [name, setName] = useState('');
@@ -28,6 +28,8 @@ const ApplicationForm: React.FC = () => {
   const [interviewUrl, setInterviewUrl] = useState('');
   const [candidateId, setCandidateId] = useState<number | null>(null);
   const [interviewId, setInterviewId] = useState<string | null>(null);
+  const [existingCandidate, setExistingCandidate] = useState<any>(null);
+  const [checkingExisting, setCheckingExisting] = useState(false);
   const router = useRouter();
 
   // Load available positions on component mount
@@ -45,6 +47,121 @@ const ApplicationForm: React.FC = () => {
 
     loadPositions();
   }, []);
+
+  // Check for existing candidate when email changes
+  const checkExistingCandidate = async (emailToCheck: string) => {
+    if (!emailToCheck || emailToCheck.length < 5) return;
+    
+    setCheckingExisting(true);
+    try {
+      const response = await fetch('/api/manatal/check-candidate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: emailToCheck }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.exists) {
+          console.log('✅ Found existing candidate:', data.candidate);
+          setExistingCandidate(data);
+          setFormState('existing');
+          setCandidateId(data.candidate.id);
+        } else {
+          setExistingCandidate(null);
+          if (formState === 'existing') {
+            setFormState('idle');
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error checking existing candidate:', error);
+    } finally {
+      setCheckingExisting(false);
+    }
+  };
+
+  // Debounced email check
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (email && formState !== 'submitting') {
+        checkExistingCandidate(email);
+      }
+    }, 1000); // Check after 1 second of no typing
+
+    return () => clearTimeout(timer);
+  }, [email]);
+
+  // Listen for postMessage events to close iframe
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      console.log('📨 Received postMessage:', event.data, 'from:', event.origin);
+      
+      // Accept messages from our own domain and Hireflix
+      const allowedOrigins = [
+        window.location.origin, // Our own domain
+        'https://app.hireflix.com', // Hireflix domain
+        'https://admin.hireflix.com' // Hireflix admin domain
+      ];
+      
+      if (!allowedOrigins.includes(event.origin)) {
+        console.warn('⚠️ Ignoring message from unauthorized origin:', event.origin);
+        return;
+      }
+      
+      if (event.data === 'close-iframe' || event.data === 'interview-completed') {
+        console.log('🎯 Interview completed via postMessage, closing iframe...');
+        handleCloseInterview();
+      }
+    };
+    
+    window.addEventListener('message', handleMessage);
+    
+    // Cleanup on unmount
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, []);
+
+  // Poll for interview completion when iframe is shown
+  useEffect(() => {
+    if (!showInterviewIframe || !candidateId) return;
+    
+    console.log(`🔍 Starting completion polling for candidate: ${candidateId}`);
+    
+    const pollForCompletion = async () => {
+      try {
+        const response = await fetch(`/api/interview-complete-signal?candidate_id=${candidateId}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.completed) {
+            console.log('🎯 Interview completed via polling, closing iframe...');
+            handleCloseInterview();
+            return true; // Stop polling
+          }
+        }
+      } catch (error) {
+        console.error('Error polling for completion:', error);
+      }
+      return false; // Continue polling
+    };
+    
+    // Poll every 3 seconds
+    const interval = setInterval(async () => {
+      const shouldStop = await pollForCompletion();
+      if (shouldStop) {
+        clearInterval(interval);
+      }
+    }, 3000);
+    
+    // Cleanup on unmount or when iframe closes
+    return () => {
+      console.log('🔌 Stopping completion polling');
+      clearInterval(interval);
+    };
+  }, [showInterviewIframe, candidateId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -263,13 +380,18 @@ const ApplicationForm: React.FC = () => {
         <div className="bg-white rounded-lg shadow-2xl w-full max-w-6xl h-full max-h-[90vh] flex flex-col">
           <div className="flex justify-between items-center p-4 border-b border-gray-200">
             <h2 className="text-xl font-bold text-gray-800">Video Interview</h2>
-            <button
-              onClick={handleCloseInterview}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
-            >
-              <X className="h-4 w-4" />
-              Close Interview
-            </button>
+            <div className="flex items-center gap-3">
+              <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                🎬 Auto-close enabled
+              </div>
+              <button
+                onClick={handleCloseInterview}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+              >
+                <X className="h-4 w-4" />
+                Close Interview
+              </button>
+            </div>
           </div>
           <div className="flex-1 p-4">
             <iframe
@@ -281,9 +403,80 @@ const ApplicationForm: React.FC = () => {
           </div>
           <div className="p-4 bg-gray-50 border-t border-gray-200 text-center">
             <p className="text-sm text-gray-600">
-              Complete your video interview and click "Close Interview" when finished.
+              Complete your video interview. The window will automatically close when you finish via webhook notification.
+            </p>
+            <p className="text-xs text-gray-500 mt-2">
+              ✨ Powered by postMessage API & Polling System
             </p>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If existing candidate found, show status
+  if (formState === 'existing' && existingCandidate) {
+    const candidate = existingCandidate.candidate;
+    const getStatusColor = (status: string) => {
+      switch (status) {
+        case 'interview_completed': return 'bg-green-50 border-green-200 text-green-800';
+        case 'interview_scheduled': return 'bg-blue-50 border-blue-200 text-blue-800';
+        default: return 'bg-yellow-50 border-yellow-200 text-yellow-800';
+      }
+    };
+
+    const getStatusIcon = (status: string) => {
+      switch (status) {
+        case 'interview_completed': return '✅';
+        case 'interview_scheduled': return '📅';
+        default: return '📋';
+      }
+    };
+
+    return (
+      <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-xl w-full">
+        <div className="text-center mb-6">
+          <div className="h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-2xl">{getStatusIcon(existingCandidate.status)}</span>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Welcome Back!</h2>
+          <p className="text-gray-600">{existingCandidate.ui_message}</p>
+        </div>
+
+        <div className="space-y-4 mb-6">
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="font-semibold text-gray-800 mb-2">Application Details</h3>
+            <div className="text-sm text-gray-600 space-y-1">
+              <p><strong>Name:</strong> {candidate.full_name}</p>
+              <p><strong>Email:</strong> {candidate.email}</p>
+              <p><strong>Position:</strong> {candidate.position_applied}</p>
+              <p><strong>Applied:</strong> {new Date(candidate.created_at).toLocaleDateString()}</p>
+            </div>
+          </div>
+
+          <div className={`rounded-lg p-4 border ${getStatusColor(existingCandidate.status)}`}>
+            <h3 className="font-semibold mb-2">Current Status</h3>
+            <p className="font-medium">{existingCandidate.message}</p>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            onClick={() => router.push(`/status/${candidate.id}`)}
+            className="flex-1 bg-pink-500 hover:bg-pink-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+          >
+            View Application Status
+          </button>
+          <button
+            onClick={() => {
+              setFormState('idle');
+              setExistingCandidate(null);
+              setEmail('');
+            }}
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-colors"
+          >
+            Apply with Different Email
+          </button>
         </div>
       </div>
     );
@@ -343,16 +536,31 @@ const ApplicationForm: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 text-left mb-2">Email Address *</label>
-                  <input 
-                    type="email" 
-                    id="email" 
-                    value={email} 
-                    onChange={e => setEmail(e.target.value)} 
-                    required 
-                    className="w-full bg-gray-100 border border-gray-300 rounded-lg py-3 px-4 text-gray-900 focus:ring-2 focus:ring-pink-500 focus:outline-none focus:border-pink-500 transition-all"
-                    disabled={formState === 'submitting'}
-                  />
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 text-left mb-2">
+                    Email Address *
+                    {checkingExisting && (
+                      <span className="ml-2 text-xs text-gray-500">
+                        <Loader className="inline h-3 w-3 animate-spin mr-1" />
+                        Checking existing applications...
+                      </span>
+                    )}
+                  </label>
+                  <div className="relative">
+                    <input 
+                      type="email" 
+                      id="email" 
+                      value={email} 
+                      onChange={e => setEmail(e.target.value)} 
+                      required 
+                      className="w-full bg-gray-100 border border-gray-300 rounded-lg py-3 px-4 pr-10 text-gray-900 focus:ring-2 focus:ring-pink-500 focus:outline-none focus:border-pink-500 transition-all"
+                      disabled={formState === 'submitting'}
+                    />
+                    {checkingExisting && (
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <Loader className="h-4 w-4 animate-spin text-gray-400" />
+                      </div>
+                    )}
+                  </div>
                 </div>
             </div>
             
