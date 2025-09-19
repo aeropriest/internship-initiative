@@ -113,7 +113,16 @@ const ApplicationForm: React.FC = () => {
         return;
       }
       
-      if (event.data === 'close-iframe' || event.data === 'interview-completed') {
+      // Handle different message formats
+      const messageData = event.data;
+      
+      // Check for Hireflix completion events
+      if (
+        messageData === 'close-iframe' || 
+        messageData === 'interview-completed' ||
+        (typeof messageData === 'object' && messageData?.type === 'interview.finished') ||
+        (typeof messageData === 'object' && messageData?.type === 'interview.completed')
+      ) {
         console.log('🎯 Interview completed via postMessage, closing iframe...');
         handleCloseInterview();
       }
@@ -406,11 +415,8 @@ const ApplicationForm: React.FC = () => {
             />
           </div>
           <div className="p-4 bg-gray-50 border-t border-gray-200 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-xs text-gray-600">
               Complete your video interview. The window will automatically close when you finish via webhook notification.
-            </p>
-            <p className="text-xs text-gray-500 mt-2">
-              ✨ Powered by postMessage API & Polling System
             </p>
           </div>
         </div>
