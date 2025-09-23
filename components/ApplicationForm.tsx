@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { X, AlertTriangle, Loader, CheckCircle } from 'lucide-react';
+import {FaFacebook, FaLinkedin, FaTwitter, FaWhatsapp} from 'react-icons/fa';
 import { RESEND_API_KEY, RESEND_FROM_EMAIL } from '../config';
 import { createConfirmationEmailHtml } from '../services/email';
 import { HireflixService, HireflixPosition, HireflixInterviewResponse } from '../services/hireflix';
@@ -32,6 +33,7 @@ const ApplicationForm: React.FC = () => {
   const [interviewId, setInterviewId] = useState<string | null>(null);
   const [existingCandidate, setExistingCandidate] = useState<any>(null);
   const [checkingExisting, setCheckingExisting] = useState(false);
+  const [consentChecked, setConsentChecked] = useState(false);
   const router = useRouter();
 
   // Load available positions on component mount
@@ -494,22 +496,71 @@ const ApplicationForm: React.FC = () => {
   // If form is in success state (for already invited or fallback scenarios), show success message
   if (formState === 'success' && !showInterviewIframe) {
     const statusMessage = localStorage.getItem(`interview_message_${candidateId}`);
+    
+    // Get social sharing links
+    const getSocialLinks = () => {
+      const appUrl = typeof window !== 'undefined' ? window.location.origin : '';
+      const position = selectedPosition || 'an internship position';
+      const message = `I've just applied for ${position} with the Global Internship Initiative! 🌍 Excited about this opportunity to work with leading clubs worldwide. #GlobalInternship #CareerOpportunity`;
+      
+      return {
+        twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(appUrl)}`,
+        linkedin: `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(appUrl)}&title=Applied for Global Internship Initiative&summary=${encodeURIComponent(message)}`,
+        facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(appUrl)}&quote=${encodeURIComponent(message)}`,
+        whatsapp: `https://api.whatsapp.com/send?text=${encodeURIComponent(message + ' ' + appUrl)}`,
+      };
+    };
+    
+    const socialLinks = getSocialLinks();
+    
     return (
       <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-xl w-full text-center">
-        <div className="mb-6">
+        <div className="mb-8">
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Application Submitted Successfully!</h2>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Application Submitted Successfully!</h2>
+          
+          {/* Status Message */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <p className="text-blue-800 font-medium">
               {statusMessage || 'Your application has been received and is being processed.'}
             </p>
           </div>
-          <p className="text-gray-600">
-            You will be redirected to your application status page shortly...
-          </p>
-        </div>
-        <div className="flex justify-center">
-          <Loader className="h-6 w-6 text-gray-400 animate-spin" />
+          
+          {/* Application Status */}
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Application Status</h3>
+            <div className="flex items-center justify-center space-x-2">
+              <CheckCircle className="h-5 w-5 text-green-500" />
+              <span className="text-green-700 font-medium">Application Submitted</span>
+            </div>
+            <p className="text-sm text-gray-600 mt-2">
+              We'll review your application and contact you within 2-3 business days.
+            </p>
+          </div>
+          
+          {/* Social Media Sharing */}
+          <div className="bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-200 rounded-lg p-6">
+            <h3 className="text-xl font-semibold text-gray-700 mb-4">Share Your Application! 🚀</h3>
+            <p className="text-gray-600 mb-6">Let your network know about this exciting opportunity!</p>
+            <div className="flex justify-center items-center space-x-6">
+              <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" 
+                 className="text-gray-500 hover:text-[#1DA1F2] transition-colors transform hover:scale-110">
+                <FaTwitter className="h-8 w-8" />
+              </a>
+              <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" 
+                 className="text-gray-500 hover:text-[#0A66C2] transition-colors transform hover:scale-110">
+                <FaLinkedin className="h-8 w-8" />
+              </a>
+              <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" 
+                 className="text-gray-500 hover:text-[#1877F2] transition-colors transform hover:scale-110">
+                <FaFacebook className="h-8 w-8" />
+              </a>
+              <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" 
+                 className="text-gray-500 hover:text-[#25D366] transition-colors transform hover:scale-110">
+                <FaWhatsapp className="h-8 w-8" />
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -548,7 +599,7 @@ const ApplicationForm: React.FC = () => {
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 text-left mb-2">
                     Email Address *
                     {checkingExisting && (
-                      <span className="ml-2 text-xs text-gray-500">
+                      <span className="ml-2 text-xs text-red-500">
                         <Loader className="inline h-3 w-3 animate-spin mr-1" />
                         Checking existing applications...
                       </span>
@@ -656,10 +707,29 @@ const ApplicationForm: React.FC = () => {
                 </div>
             )}
             
+            {/* Consent Checkbox */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <label className="flex items-start space-x-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={consentChecked}
+                  onChange={(e) => setConsentChecked(e.target.checked)}
+                  className="mt-1 h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 rounded"
+                  required
+                />
+                <span className="text-sm text-gray-700 leading-relaxed">
+                  By submitting this form, you consent to Global Talent Solutions processing your data for recruitment. We may store your CV and video for up to 36 months for current and future roles. You can withdraw consent at any time by contacting{' '}
+                  <a href="mailto:sean@globaltalentsolutions.net" className="text-pink-600 hover:text-pink-700 underline">
+                    sean@globaltalentsolutions.net
+                  </a>
+                </span>
+              </label>
+            </div>
+            
             <div>
               <GradientButton
                 type="submit"
-                disabled={formState === 'submitting'}
+                disabled={formState === 'submitting' || !consentChecked}
                 loading={formState === 'submitting'}
                 variant="filled"
                 size="lg"

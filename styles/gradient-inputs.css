@@ -1,7 +1,7 @@
 /* Gradient border input styles for 59club Academy branding */
 .gradient-border-input {
   background: white;
-  border: 2px solid transparent;
+  border: 2px solid #e5e7eb;
   border-radius: 8px;
   padding: 12px 16px;
   transition: all 0.3s ease;

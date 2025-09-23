@@ -1,5 +1,4 @@
 import React from 'react';
-import Header from '../components/Header';
 import Footer from '../components/Footer';
 import './globals.css';
 
@@ -16,7 +15,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-gray-50 text-gray-800 min-h-screen">
-        <Header />
         <main>{children}</main>
         <Footer />
       </body>

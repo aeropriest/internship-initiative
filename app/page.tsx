@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Header from '../components/Header';
 import Hero from '../components/Hero';
 import Section from '../components/Section';
 import { CheckCircle, Search, Users, BarChart, Globe, Briefcase, TrendingUp, BookOpen, Star, ChevronsRight, FileText, Video, UserCheck, MessageSquare, CheckSquare } from 'lucide-react';
@@ -19,6 +20,7 @@ const ValuePoint: React.FC<{ icon: React.ReactNode; title: string; text: string 
 export default function HomePage() {
   return (
     <>
+      <Header />
       <Hero />
       <Section id="goals" title="The Club & Hospitality Industry faces two pressing challenges...">
         <div className="space-y-12 max-w-4xl mx-auto">
