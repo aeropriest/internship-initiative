@@ -22,7 +22,7 @@ export default function HomePage() {
     <>
       <Header />
       <Hero />
-      <Section id="goals" title="The Club & Hospitality Industry faces two pressing challenges...">
+      {/* <Section id="goals" title="The Club & Hospitality Industry faces two pressing challenges...">
         <div className="space-y-12 max-w-4xl mx-auto">
           <div className="bg-white p-8 rounded-2xl shadow-lg relative border border-gray-200">
             <div className="absolute -top-5 -left-5 bg-gradient-to-br from-pink-500 to-purple-600 p-3 rounded-full shadow-lg">
@@ -48,8 +48,8 @@ export default function HomePage() {
             </p>
           </div>
         </div>
-      </Section>
-
+      </Section> */}
+{/* 
       <Section id="value" title="Quality Talent, Better Service, Higher Revenue">
         <p className="max-w-4xl mx-auto text-center text-gray-600 text-xl mb-16">
           The Initiative supports clubs in recruiting proactive passionate seasonal staff and provides a structured, international pathway for aspiring managers and professionals.
@@ -59,8 +59,8 @@ export default function HomePage() {
             <ValuePoint key={index} {...point} />
           ))}
         </div>
-      </Section>
-
+      </Section> */}
+{/* 
       <Section id="partners" title="Partnering for Success">
         <p className="max-w-4xl mx-auto text-center text-gray-600 text-xl mb-16">
           Collaboration is key, allowing us to tap into the finest expertise & experience in the industry.
@@ -201,7 +201,7 @@ export default function HomePage() {
             </div>
           ))}
         </div>
-      </Section>
+      </Section> */}
     </>
   );
 }
