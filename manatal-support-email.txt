@@ -1,0 +1,45 @@
+Subject: URGENT: Manatal API Integration Issues - Data Not Displaying in UI
+
+Dear Manatal Support Team,
+
+I'm writing regarding critical issues we're experiencing with our Manatal API integration for our internship application process. While our API calls are returning success responses, NONE of the data is actually displaying in the Manatal UI. This is blocking our ability to review candidate applications properly.
+
+Account Details:
+- Account Owner: hilly@globaltalentsolutions.net
+- API Token: 51ce36b3ac06f113f418f0e0f47391e7471090c7 (first 5 chars for verification)
+- Test Candidate ID: 127835665
+
+Issues We're Experiencing (with UI screenshot evidence):
+
+1. Custom Fields Not Displaying: We're successfully adding personality quiz results as custom fields via the API (confirmed by GET requests), but these fields are NOWHERE to be seen in the Manatal UI. There doesn't appear to be any section in the UI where custom fields are displayed.
+
+2. Resume Upload Issue: The resume upload API call returns a 201 Created status, but the resume is not visible in the UI. There's no preview available, and when we retrieve the resume data via API, the "resume_file" field is empty ("").
+
+3. Notes Not Appearing: We're adding notes via the PATCH endpoint, but they're not appearing in the Notes section of the UI. The Notes tab shows "You have not created any notes yet" despite our API calls to add notes being successful.
+
+API Tests Performed:
+
+1. Create Candidate: Successfully created candidate with custom fields (200 OK)
+2. Upload Resume: API returns success (201 Created) but resume doesn't appear in UI
+3. Update with Notes: API returns success (200 OK) but notes don't appear in UI
+4. Get Candidate Data: Successfully retrieves all custom fields we added
+5. Get Notes: Returns empty array despite adding notes
+6. Get Resume: Returns object with ID but empty "resume_file" field
+
+Questions:
+
+1. Where exactly in the UI should custom fields appear? Is there a specific section we're missing?
+2. Is there an admin configuration required to make custom fields visible in the UI?
+3. Why is the resume not displaying despite successful API upload? Is there a specific format requirement?
+4. What is the correct API endpoint for adding notes that will be visible in the Notes section?
+5. Are there any known issues with the API vs UI synchronization?
+
+This is blocking our ability to launch our internship application process, as we need to be able to view the personality quiz results for candidates.
+
+I've attached a markdown file with detailed API calls, responses, and our test scripts for your reference.
+
+We appreciate your assistance in resolving these issues as they're critical for our internship application process.
+
+Best regards,
+[Your Name]
+Global Talent Solutions

@@ -4,9 +4,30 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import GradientButton from './GradientButton';
+import { ClipboardList } from 'lucide-react';
 
 const Header: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  
+  // Check if user is admin (in a real app, this would be based on authentication)
+  useEffect(() => {
+    // For demo purposes, we'll consider everyone an admin in development mode
+    if (process.env.NODE_ENV === 'development') {
+      setIsAdmin(true);
+    } else {
+      // In production, you would check if the user is authenticated and has admin role
+      // This is just a placeholder
+      const checkAdminStatus = () => {
+        const adminStatus = localStorage.getItem('admin_access');
+        setIsAdmin(adminStatus === 'true');
+      };
+      
+      checkAdminStatus();
+      window.addEventListener('storage', checkAdminStatus);
+      return () => window.removeEventListener('storage', checkAdminStatus);
+    }
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,13 +49,34 @@ const Header: React.FC = () => {
             className="object-contain"
           />
         </Link>
-        <GradientButton 
-          href="/apply"
-          variant="outline"
-          size="md"
-        >
-          I'm interested!
-        </GradientButton>
+        <div className="flex space-x-4 items-center">
+          {isAdmin && (
+            <Link 
+              href="/answers" 
+              className="mr-2 flex items-center text-white hover:text-pink-300 transition-colors"
+              title="View Quiz Answers"
+            >
+              <ClipboardList className="h-5 w-5 mr-1" />
+              <span className="hidden md:inline">Answers</span>
+            </Link>
+          )}
+          <GradientButton 
+            href="/apply"
+            variant="outline"
+            size="md"
+          >
+            I'm interested!
+          </GradientButton>
+          {process.env.NODE_ENV === 'development' && (
+            <GradientButton 
+              href="/test-questionnaire"
+              variant="outline"
+              size="md"
+            >
+              Test Quiz
+            </GradientButton>
+          )}  
+        </div>
 
       </div>
     </header>

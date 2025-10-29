@@ -1,17 +1,22 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { CheckCircle, Twitter, Linkedin, Facebook, Loader } from 'lucide-react';
 import { RESEND_API_KEY, RESEND_FROM_EMAIL } from '../../../config';
 import { createInterviewCompleteEmailHtml } from '../../../services/email';
 import {FaFacebook, FaLinkedin, FaTwitter, FaWhatsapp} from 'react-icons/fa';
+import GradientButton from '../../../components/GradientButton';
 
-type ApplicationStatus = 'Unknown' | 'Application Submitted' | 'Resume Processing' | 'Resume Uploaded' | 'Interview Scheduled' | 'Interview Completed' | 'Under Review' | 'Error';
+type ApplicationStatus = 'Unknown' | 'Application Submitted' | 'Resume Processing' | 'Resume Uploaded' | 'Interview Scheduled' | 'Interview Completed' | 'Under Review' | 'Quiz Completed' | 'Error';
 
 interface StatusInfo {
     status: ApplicationStatus;
     timestamp?: string;
+    interview_status?: string;
+    interview_id?: string;
+    video_url?: string;
+    transcript_url?: string;
 }
 
 interface CandidateInfo {
@@ -23,10 +28,12 @@ interface CandidateInfo {
 
 export default function StatusPage() {
   const params = useParams();
+  const router = useRouter();
   const candidateId = params.candidateId as string;
   const [statusInfo, setStatusInfo] = useState<StatusInfo>({ status: 'Unknown' });
   const [candidateInfo, setCandidateInfo] = useState<CandidateInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasTakenSurvey, setHasTakenSurvey] = useState(false);
 
   const appUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
@@ -56,6 +63,26 @@ export default function StatusPage() {
         if (candidateInfoStr) {
           const info = JSON.parse(candidateInfoStr);
           setCandidateInfo(info);
+        }
+        
+        // Check if the candidate has taken the survey
+        const surveyCompletedStr = localStorage.getItem(`survey_completed_${candidateId}`);
+        if (surveyCompletedStr) {
+          setHasTakenSurvey(true);
+          
+          // Update status to Quiz Completed if current status is Interview Completed
+          const storedStatusStr = localStorage.getItem(`application_status_${candidateId}`);
+          if (storedStatusStr) {
+            const storedStatus = JSON.parse(storedStatusStr);
+            if (storedStatus.status === 'Interview Completed') {
+              const updatedStatus = {
+                ...storedStatus,
+                status: 'Quiz Completed',
+                timestamp: new Date().toISOString()
+              };
+              localStorage.setItem(`application_status_${candidateId}`, JSON.stringify(updatedStatus));
+            }
+          }
         }
 
         // Load application status
@@ -148,6 +175,16 @@ export default function StatusPage() {
           title: 'Resume Successfully Processed! ✅',
           message: 'Your resume has been processed and added to your candidate profile.'
         };
+      case 'Interview Completed':
+        return {
+          title: 'Video Interview Completed! 📹',
+          message: 'Thank you for completing your video interview. Please take the personality questionnaire to complete your application.'
+        };
+      case 'Quiz Completed':
+        return {
+          title: 'Application Complete! 🎉',
+          message: 'Thank you for completing all steps of the application process. Our team will review your submission and be in touch soon!'
+        };
       case 'Under Review':
         return {
           title: 'Application Under Review 📋',
@@ -203,6 +240,39 @@ export default function StatusPage() {
           </div>
         )}
         
+        {/* Personality Survey Section */}
+        <div className="mt-10 pt-8 border-t border-gray-200">
+          <h3 className="text-xl font-semibold text-gray-700 mb-4">Personality Questionnaire</h3>
+          {hasTakenSurvey ? (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+              <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-3" />
+              <p className="text-green-800 font-medium mb-2">Thank you for completing the personality questionnaire!</p>
+              <p className="text-gray-600 text-sm">Your responses have been recorded.</p>
+            </div>
+          ) : statusInfo.status === 'Interview Completed' ? (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+              <p className="text-gray-700 mb-4">
+                Now that you've completed your video interview, please take our personality questionnaire.
+                This will help us better match you with suitable opportunities.
+              </p>
+              <GradientButton
+                onClick={() => router.push(`/questionnaire?candidateId=${candidateId}`)}
+                variant="filled"
+                size="md"
+              >
+                Take Personality Questionnaire
+              </GradientButton>
+            </div>
+          ) : (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+              <p className="text-gray-600 mb-2">
+                The personality questionnaire will be available after you complete your video interview.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Social Sharing Section */}
         <div className="mt-10 pt-8 border-t border-gray-200">
           <h3 className="text-xl font-semibold text-gray-700 mb-4">Share Your Application! 🚀</h3>
           <p className="text-gray-600 mb-6">Let your network know about this exciting opportunity!</p>
