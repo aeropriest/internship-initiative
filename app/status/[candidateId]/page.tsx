@@ -163,32 +163,32 @@ export default function StatusPage() {
       case 'Application Submitted':
         return {
           title: 'Application Submitted Successfully! 🎉',
-          message: 'Thank you for your application! We have received your information and resume.'
+          message: 'Thank you for your application! We have received your information and resume. Please proceed with the video interview (Step 1) below.'
         };
       case 'Resume Processing':
         return {
           title: 'Processing Your Resume...',
-          message: 'Our team is reviewing your resume and qualifications.'
+          message: 'Our team is reviewing your resume and qualifications. Please proceed with the video interview (Step 1) below.'
         };
       case 'Resume Uploaded':
         return {
           title: 'Resume Successfully Processed! ✅',
-          message: 'Your resume has been processed and added to your candidate profile.'
+          message: 'Your resume has been processed and added to your candidate profile. Please proceed with the video interview (Step 1) below.'
         };
       case 'Interview Completed':
         return {
           title: 'Video Interview Completed! 📹',
-          message: 'Thank you for completing your video interview. Please take the personality questionnaire to complete your application.'
+          message: 'Thank you for completing your video interview. Please proceed to the personality questionnaire (Step 2) below to complete your application.'
         };
       case 'Quiz Completed':
         return {
           title: 'Application Complete! 🎉',
-          message: 'Thank you for completing all steps of the application process. Our team will review your submission and be in touch soon!'
+          message: 'Thank you for completing all steps of the application process. Your personality assessment has been recorded and added to your profile. Our team will review your submission and be in touch soon!'
         };
       case 'Under Review':
         return {
           title: 'Application Under Review 📋',
-          message: 'Our hiring team is reviewing your application. We will be in touch with next steps soon!'
+          message: 'Our hiring team is reviewing your application. Please make sure you have completed both the video interview (Step 1) and personality questionnaire (Step 2) below.'
         };
       case 'Error':
         return {
@@ -198,7 +198,7 @@ export default function StatusPage() {
       default:
         return {
           title: 'Processing Application...',
-          message: 'Please wait while we process your application.'
+          message: 'Please wait while we process your application. In the meantime, please proceed with the video interview (Step 1) below.'
         };
     }
   };
@@ -240,19 +240,68 @@ export default function StatusPage() {
           </div>
         )}
         
-        {/* Personality Survey Section */}
+        {/* Video Interview Section - Step 1 */}
         <div className="mt-10 pt-8 border-t border-gray-200">
-          <h3 className="text-xl font-semibold text-gray-700 mb-4">Personality Questionnaire</h3>
+          <h3 className="text-xl font-semibold text-gray-700 mb-4">
+            <span className="inline-flex items-center justify-center w-8 h-8 mr-2 bg-blue-600 text-white rounded-full">1</span>
+            Video Interview
+          </h3>
+          
+          {statusInfo.status === 'Interview Completed' ? (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+              <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-3" />
+              <p className="text-green-800 font-medium mb-2">Video interview completed!</p>
+              <p className="text-gray-600 text-sm">Thank you for completing your video interview.</p>
+            </div>
+          ) : (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+              <p className="text-gray-700 mb-4">
+                <strong>First step:</strong> Please complete a short video interview to tell us more about yourself and your qualifications.
+                This will give our team a better understanding of your skills and experience.
+              </p>
+              <GradientButton
+                onClick={() => {
+                  // In a real implementation, you would use your actual Hireflix interview URL
+                  window.open('https://app.hireflix.com/s/interview/start', '_blank');
+                  
+                  // For demo purposes, we'll simulate interview completion
+                  setTimeout(() => {
+                    setStatusInfo({ 
+                      status: 'Interview Completed', 
+                      timestamp: new Date().toISOString() 
+                    });
+                    localStorage.setItem(`application_status_${candidateId}`, JSON.stringify({ 
+                      status: 'Interview Completed', 
+                      timestamp: new Date().toISOString() 
+                    }));
+                  }, 1000);
+                }}
+                variant="filled"
+                size="md"
+              >
+                Start Video Interview
+              </GradientButton>
+            </div>
+          )}
+        </div>
+        
+        {/* Personality Survey Section - Step 2 */}
+        <div className="mt-10 pt-8 border-t border-gray-200">
+          <h3 className="text-xl font-semibold text-gray-700 mb-4">
+            <span className="inline-flex items-center justify-center w-8 h-8 mr-2 bg-blue-600 text-white rounded-full">2</span>
+            Personality Questionnaire
+          </h3>
+          
           {hasTakenSurvey ? (
             <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
               <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-3" />
               <p className="text-green-800 font-medium mb-2">Thank you for completing the personality questionnaire!</p>
-              <p className="text-gray-600 text-sm">Your responses have been recorded.</p>
+              <p className="text-gray-600 text-sm">Your responses have been recorded and added to your application.</p>
             </div>
           ) : statusInfo.status === 'Interview Completed' ? (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
               <p className="text-gray-700 mb-4">
-                Now that you've completed your video interview, please take our personality questionnaire.
+                <strong>Next step:</strong> Now that you've completed your video interview, please take our personality questionnaire.
                 This will help us better match you with suitable opportunities.
               </p>
               <GradientButton
@@ -266,7 +315,7 @@ export default function StatusPage() {
           ) : (
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
               <p className="text-gray-600 mb-2">
-                The personality questionnaire will be available after you complete your video interview.
+                <strong>Coming up:</strong> After completing your video interview, you'll be able to take our personality questionnaire.
               </p>
             </div>
           )}

@@ -103,7 +103,7 @@ export default function FileDropzone({
       
       {!selectedFile ? (
         <div
-          className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+          className={`relative border-2 border-dashed rounded-lg p-3 text-center transition-colors ${
             dragActive
               ? 'border-pink-500 bg-pink-50'
               : error
@@ -123,10 +123,10 @@ export default function FileDropzone({
             disabled={disabled}
           />
           
-          <Upload className={`mx-auto h-12 w-12 mb-4 ${error ? 'text-red-400' : 'text-gray-400'}`} />
+          <Upload className={`mx-auto h-8 w-8 mb-2 ${error ? 'text-red-400' : 'text-gray-400'}`} />
           
-          <div className="space-y-2">
-            <p className={`text-lg font-medium ${error ? 'text-red-600' : 'text-gray-600'}`}>
+          <div className="space-y-1">
+            <p className={`text-base font-medium ${error ? 'text-red-600' : 'text-gray-600'}`}>
               {dragActive ? 'Drop your resume here' : 'Upload your resume'}
             </p>
             <p className="text-sm text-gray-500">

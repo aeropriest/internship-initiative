@@ -88,16 +88,41 @@ export async function POST(request: NextRequest) {
             'Agreeableness Score',
             'Openness Score',
             'Emotional Stability Score',
-            'Q1 - Networking',
-            'Q2 - Planning',
-            'Q3 - Collaboration',
-            'Q4 - Learning',
-            'Q5 - Stress Management',
-            'Q6 - Initiative',
-            'Q7 - Feedback',
-            'Q8 - Adaptability',
-            'Q9 - Social Energy',
-            'Q10 - Criticism Handling'
+            // Extraversion (1-6)
+            'Q1 - Meeting New People',
+            'Q2 - Leading Groups',
+            'Q3 - Social Energy',
+            'Q4 - Sharing Ideas',
+            'Q5 - Starting Conversations',
+            'Q6 - Social Environment',
+            // Agreeableness (7-12)
+            'Q7 - Perspective Taking',
+            'Q8 - Forgiveness',
+            'Q9 - Problem Solving',
+            'Q10 - Harmony vs Competition',
+            'Q11 - Compassion',
+            'Q12 - Team Cooperation',
+            // Conscientiousness (13-18)
+            'Q13 - Task Planning',
+            'Q14 - Goal Setting',
+            'Q15 - Order and Routine',
+            'Q16 - Promise Keeping',
+            'Q17 - Attention to Detail',
+            'Q18 - Task Completion',
+            // Openness (19-24)
+            'Q19 - Exploring Ideas',
+            'Q20 - Adaptability',
+            'Q21 - Curiosity',
+            'Q22 - Learning',
+            'Q23 - Problem Approaches',
+            'Q24 - Diverse Perspectives',
+            // Emotional Stability (25-30)
+            'Q25 - Calm Under Pressure',
+            'Q26 - Handling Challenges',
+            'Q27 - Recovery from Setbacks',
+            'Q28 - Positivity in Stress',
+            'Q29 - Emotional Control',
+            'Q30 - Anxiety Management'
           ]
         });
       }
@@ -119,16 +144,41 @@ export async function POST(request: NextRequest) {
       
       // Add individual question answers
       const questionLabels = [
-        'Q1 - Networking',
-        'Q2 - Planning',
-        'Q3 - Collaboration',
-        'Q4 - Learning',
-        'Q5 - Stress Management',
-        'Q6 - Initiative',
-        'Q7 - Feedback',
-        'Q8 - Adaptability',
-        'Q9 - Social Energy',
-        'Q10 - Criticism Handling'
+        // Extraversion (1-6)
+        'Q1 - Meeting New People',
+        'Q2 - Leading Groups',
+        'Q3 - Social Energy',
+        'Q4 - Sharing Ideas',
+        'Q5 - Starting Conversations',
+        'Q6 - Social Environment',
+        // Agreeableness (7-12)
+        'Q7 - Perspective Taking',
+        'Q8 - Forgiveness',
+        'Q9 - Problem Solving',
+        'Q10 - Harmony vs Competition',
+        'Q11 - Compassion',
+        'Q12 - Team Cooperation',
+        // Conscientiousness (13-18)
+        'Q13 - Task Planning',
+        'Q14 - Goal Setting',
+        'Q15 - Order and Routine',
+        'Q16 - Promise Keeping',
+        'Q17 - Attention to Detail',
+        'Q18 - Task Completion',
+        // Openness (19-24)
+        'Q19 - Exploring Ideas',
+        'Q20 - Adaptability',
+        'Q21 - Curiosity',
+        'Q22 - Learning',
+        'Q23 - Problem Approaches',
+        'Q24 - Diverse Perspectives',
+        // Emotional Stability (25-30)
+        'Q25 - Calm Under Pressure',
+        'Q26 - Handling Challenges',
+        'Q27 - Recovery from Setbacks',
+        'Q28 - Positivity in Stress',
+        'Q29 - Emotional Control',
+        'Q30 - Anxiety Management'
       ];
       
       Object.entries(submission.answers).forEach(([questionId, answer]) => {
@@ -165,14 +215,20 @@ export async function POST(request: NextRequest) {
           // Prepare trait scores for Manatal custom fields
           const customFields: Record<string, any> = {};
           
-          Object.entries(submission.traitScores).forEach(([trait, score]) => {
-            const formattedTrait = trait.charAt(0).toUpperCase() + trait.slice(1);
-            customFields[`personality_${trait.toLowerCase()}`] = score.toFixed(2);
-          });
+          // Format trait scores according to Manatal's expected format
+          // Make sure to use the exact field names we confirmed are working
+          customFields['personality_openness'] = submission.traitScores.openness.toFixed(2);
+          customFields['personality_extraversion'] = submission.traitScores.extraversion.toFixed(2);
+          customFields['personality_agreeableness'] = submission.traitScores.agreeableness.toFixed(2);
+          customFields['personality_conscientiousness'] = submission.traitScores.conscientiousness.toFixed(2);
+          customFields['personality_emotionalstability'] = submission.traitScores.emotionalStability.toFixed(2);
           
           // Add quiz completion status
           customFields['quiz_completed'] = true;
-          customFields['quiz_completed_at'] = new Date().toISOString();
+          customFields['application_flow'] = 'Questionnaire Completed';
+          customFields['application_source'] = 'Website';
+          
+          console.log('Updating Manatal with custom fields:', JSON.stringify(customFields, null, 2));
           
           // Update Manatal candidate
           const response = await fetch(`https://api.manatal.com/open/v3/candidates/${submission.candidateId}/`, {
@@ -180,6 +236,7 @@ export async function POST(request: NextRequest) {
             headers: {
               'Authorization': `Token ${MANATAL_API_TOKEN}`,
               'Content-Type': 'application/json',
+              'Accept': 'application/json'
             },
             body: JSON.stringify({
               custom_fields: customFields
@@ -187,9 +244,36 @@ export async function POST(request: NextRequest) {
           });
           
           if (response.ok) {
+            const responseData = await response.json();
             console.log('✅ Manatal candidate updated with quiz results');
+            console.log('Manatal response:', JSON.stringify(responseData, null, 2));
+            
+            // Verify the custom fields were properly set
+            if (responseData.custom_fields) {
+              console.log('Verified custom fields in response:', JSON.stringify(responseData.custom_fields, null, 2));
+              
+              // Check if all fields were properly set
+              const allFieldsSet = [
+                'personality_openness',
+                'personality_extraversion',
+                'personality_agreeableness',
+                'personality_conscientiousness',
+                'personality_emotionalstability',
+                'quiz_completed'
+              ].every(field => responseData.custom_fields[field] !== undefined);
+              
+              if (allFieldsSet) {
+                console.log('✅ All custom fields were successfully set in Manatal');
+              } else {
+                console.warn('⚠️ Some custom fields may not have been set properly in Manatal');
+              }
+            } else {
+              console.warn('⚠️ No custom_fields found in Manatal response');
+            }
           } else {
             console.error('❌ Failed to update Manatal:', response.status, response.statusText);
+            const errorText = await response.text();
+            console.error('Error details:', errorText);
           }
         } catch (manatalError) {
           console.error('❌ Error updating Manatal:', manatalError);
@@ -197,10 +281,24 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Return success response
+      // Return success response with detailed information
       return NextResponse.json({ 
         success: true,
-        message: 'Questionnaire submitted successfully'
+        message: 'Questionnaire submitted successfully',
+        status: 'Quiz Completed',
+        candidateId: submission.candidateId,
+        updatedFields: {
+          personality_scores: {
+            openness: submission.traitScores.openness.toFixed(2),
+            extraversion: submission.traitScores.extraversion.toFixed(2),
+            agreeableness: submission.traitScores.agreeableness.toFixed(2),
+            conscientiousness: submission.traitScores.conscientiousness.toFixed(2),
+            emotionalStability: submission.traitScores.emotionalStability.toFixed(2)
+          },
+          quiz_completed: true,
+          application_flow: 'Questionnaire Completed'
+        },
+        next_steps: 'Your application is now complete and will be reviewed by our team.'
       });
       
     } catch (googleError: unknown) {

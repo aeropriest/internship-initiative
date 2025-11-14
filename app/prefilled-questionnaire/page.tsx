@@ -7,74 +7,204 @@ import GradientButton from '../../components/GradientButton';
 
 // Default test data for pre-filling the questionnaire
 const defaultTestData = {
-  name: 'Test Candidate',
-  email: 'test.candidate@example.com',
+  name: 'Jason Miller',
+  email: 'jason.miller@example.com',
   manatalUrl: 'https://app.manatal.com/candidates/12345',
   hireflixUrl: 'https://app.hireflix.com/interviews/67890',
   answers: {
-    1: 4, // Extraversion - Networking
-    2: 5, // Conscientiousness - Planning
-    3: 4, // Agreeableness - Collaboration
-    4: 5, // Openness - Learning
-    5: 3, // Emotional Stability - Stress Management
-    6: 4, // Conscientiousness - Initiative
-    7: 5, // Agreeableness - Feedback
-    8: 4, // Openness - Adaptability
-    9: 3, // Extraversion - Social Energy
-    10: 4  // Emotional Stability - Criticism
+    // Extraversion (1-6)
+    1: 4, // I enjoy meeting new people
+    2: 3, // I feel comfortable leading a group
+    3: 4, // I gain energy from social interactions
+    4: 5, // I like to share my ideas with others
+    5: 3, // I find it easy to start conversations
+    6: 4, // I prefer being busy and surrounded by people
+    // Agreeableness (7-12)
+    7: 5, // I try to see things from others' perspectives
+    8: 4, // I am quick to forgive others
+    9: 5, // I enjoy helping people solve problems
+    10: 3, // I value harmony over competition
+    11: 4, // I'm compassionate toward others' feelings
+    12: 5, // I find it easy to cooperate in teams
+    // Conscientiousness (13-18)
+    13: 4, // I plan my tasks before I start them
+    14: 5, // I often set personal goals
+    15: 3, // I like maintaining order and routine
+    16: 4, // I fulfill my promises on time
+    17: 5, // I pay attention to details
+    18: 4, // I keep going until a task is fully completed
+    // Openness (19-24)
+    19: 3, // I enjoy exploring new ideas or hobbies
+    20: 4, // I adapt easily to new situations
+    21: 5, // I am curious about how things work
+    22: 4, // I enjoy learning from experiences
+    23: 3, // I try new approaches when solving problems
+    24: 4, // I like diverse perspectives on issues
+    // Emotional Stability (25-30)
+    25: 3, // I remain calm under pressure
+    26: 4, // I handle unexpected challenges well
+    27: 3, // I recover quickly after setbacks
+    28: 4, // I stay positive even in stressful situations
+    29: 3, // I control my emotions in disagreements
+    30: 4  // I rarely feel anxious or irritated
   }
 };
 
 // Define the questions with their trait categories
 const questions = [
+  // Extraversion (1-6)
   {
     id: 1,
-    text: "I enjoy meeting new people and networking at events.",
+    text: "I enjoy meeting new people.",
     trait: "extraversion"
   },
   {
     id: 2,
-    text: "I always plan my tasks and meet deadlines ahead of time.",
-    trait: "conscientiousness"
+    text: "I feel comfortable leading a group.",
+    trait: "extraversion"
   },
   {
     id: 3,
-    text: "I prefer collaborating with a team rather than working alone.",
-    trait: "agreeableness"
+    text: "I gain energy from social interactions.",
+    trait: "extraversion"
   },
   {
     id: 4,
-    text: "I like exploring new ideas and learning emerging technologies.",
-    trait: "openness"
+    text: "I like to share my ideas with others.",
+    trait: "extraversion"
   },
   {
     id: 5,
-    text: "I stay calm and focused during stressful situations.",
-    trait: "emotionalStability"
+    text: "I find it easy to start conversations.",
+    trait: "extraversion"
   },
   {
     id: 6,
-    text: "I take initiative to solve problems without being asked.",
-    trait: "conscientiousness"
+    text: "I prefer being busy and surrounded by people.",
+    trait: "extraversion"
   },
+  // Agreeableness (7-12)
   {
     id: 7,
-    text: "I value feedback from others to improve my performance.",
+    text: "I try to see things from others' perspectives.",
     trait: "agreeableness"
   },
   {
     id: 8,
-    text: "I adapt quickly to changes in plans or environments.",
-    trait: "openness"
+    text: "I am quick to forgive others.",
+    trait: "agreeableness"
   },
   {
     id: 9,
-    text: "I feel energized after social interactions at work.",
-    trait: "extraversion"
+    text: "I enjoy helping people solve problems.",
+    trait: "agreeableness"
   },
   {
     id: 10,
-    text: "I manage my emotions well when facing criticism.",
+    text: "I value harmony over competition.",
+    trait: "agreeableness"
+  },
+  {
+    id: 11,
+    text: "I'm compassionate toward others' feelings.",
+    trait: "agreeableness"
+  },
+  {
+    id: 12,
+    text: "I find it easy to cooperate in teams.",
+    trait: "agreeableness"
+  },
+  // Conscientiousness (13-18)
+  {
+    id: 13,
+    text: "I plan my tasks before I start them.",
+    trait: "conscientiousness"
+  },
+  {
+    id: 14,
+    text: "I often set personal goals.",
+    trait: "conscientiousness"
+  },
+  {
+    id: 15,
+    text: "I like maintaining order and routine.",
+    trait: "conscientiousness"
+  },
+  {
+    id: 16,
+    text: "I fulfill my promises on time.",
+    trait: "conscientiousness"
+  },
+  {
+    id: 17,
+    text: "I pay attention to details.",
+    trait: "conscientiousness"
+  },
+  {
+    id: 18,
+    text: "I keep going until a task is fully completed.",
+    trait: "conscientiousness"
+  },
+  // Openness (19-24)
+  {
+    id: 19,
+    text: "I enjoy exploring new ideas or hobbies.",
+    trait: "openness"
+  },
+  {
+    id: 20,
+    text: "I adapt easily to new situations.",
+    trait: "openness"
+  },
+  {
+    id: 21,
+    text: "I am curious about how things work.",
+    trait: "openness"
+  },
+  {
+    id: 22,
+    text: "I enjoy learning from experiences.",
+    trait: "openness"
+  },
+  {
+    id: 23,
+    text: "I try new approaches when solving problems.",
+    trait: "openness"
+  },
+  {
+    id: 24,
+    text: "I like diverse perspectives on issues.",
+    trait: "openness"
+  },
+  // Emotional Stability (25-30)
+  {
+    id: 25,
+    text: "I remain calm under pressure.",
+    trait: "emotionalStability"
+  },
+  {
+    id: 26,
+    text: "I handle unexpected challenges well.",
+    trait: "emotionalStability"
+  },
+  {
+    id: 27,
+    text: "I recover quickly after setbacks.",
+    trait: "emotionalStability"
+  },
+  {
+    id: 28,
+    text: "I stay positive even in stressful situations.",
+    trait: "emotionalStability"
+  },
+  {
+    id: 29,
+    text: "I control my emotions in disagreements.",
+    trait: "emotionalStability"
+  },
+  {
+    id: 30,
+    text: "I rarely feel anxious or irritated.",
     trait: "emotionalStability"
   }
 ];
@@ -334,36 +464,190 @@ export default function PrefilledQuestionnairePage() {
           {/* Questionnaire */}
           <div className="border border-gray-200 rounded-lg p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              Personality Questions (Pre-filled)
+              Personality Questions (Pre-filled - {questions.length} Questions)
             </h2>
-            <div className="space-y-6">
-              {questions.map((question) => (
-                <div key={question.id} className="bg-gray-50 p-4 rounded-lg">
-                  <p className="font-medium text-gray-700 mb-3">{question.id}. {question.text}</p>
-                  <div className="grid grid-cols-5 gap-2 text-sm text-center">
-                    <div>Strongly Disagree</div>
-                    <div>Disagree</div>
-                    <div>Neutral</div>
-                    <div>Agree</div>
-                    <div>Strongly Agree</div>
-                  </div>
-                  <div className="grid grid-cols-5 gap-2 mt-2">
-                    {[1, 2, 3, 4, 5].map((value) => (
-                      <label key={value} className="flex justify-center">
-                        <input
-                          type="radio"
-                          name={`question-${question.id}`}
-                          value={value}
-                          checked={answers[question.id] === value}
-                          onChange={() => handleAnswerChange(question.id, value)}
-                          className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300"
-                          required
-                        />
-                      </label>
-                    ))}
-                  </div>
+            
+            {/* Group questions by trait category */}
+            <div className="space-y-8">
+              {/* Extraversion */}
+              <div className="border border-pink-200 rounded-xl p-5 bg-pink-50">
+                <h3 className="text-lg font-semibold text-pink-800 mb-4 border-b border-pink-200 pb-2">
+                  Extraversion (1-6)
+                </h3>
+                <div className="space-y-6">
+                  {questions.filter(q => q.trait === "extraversion").map((question) => (
+                    <div key={question.id} className="bg-white p-4 rounded-lg shadow-sm">
+                      <p className="font-medium text-gray-700 mb-3">{question.id}. {question.text}</p>
+                      <div className="grid grid-cols-5 gap-2 text-sm text-center">
+                        <div>Strongly Disagree</div>
+                        <div>Disagree</div>
+                        <div>Neutral</div>
+                        <div>Agree</div>
+                        <div>Strongly Agree</div>
+                      </div>
+                      <div className="grid grid-cols-5 gap-2 mt-2">
+                        {[1, 2, 3, 4, 5].map((value) => (
+                          <label key={value} className="flex justify-center">
+                            <input
+                              type="radio"
+                              name={`question-${question.id}`}
+                              value={value}
+                              checked={answers[question.id] === value}
+                              onChange={() => handleAnswerChange(question.id, value)}
+                              className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300"
+                              required
+                            />
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+              
+              {/* Agreeableness */}
+              <div className="border border-green-200 rounded-xl p-5 bg-green-50">
+                <h3 className="text-lg font-semibold text-green-800 mb-4 border-b border-green-200 pb-2">
+                  Agreeableness (7-12)
+                </h3>
+                <div className="space-y-6">
+                  {questions.filter(q => q.trait === "agreeableness").map((question) => (
+                    <div key={question.id} className="bg-white p-4 rounded-lg shadow-sm">
+                      <p className="font-medium text-gray-700 mb-3">{question.id}. {question.text}</p>
+                      <div className="grid grid-cols-5 gap-2 text-sm text-center">
+                        <div>Strongly Disagree</div>
+                        <div>Disagree</div>
+                        <div>Neutral</div>
+                        <div>Agree</div>
+                        <div>Strongly Agree</div>
+                      </div>
+                      <div className="grid grid-cols-5 gap-2 mt-2">
+                        {[1, 2, 3, 4, 5].map((value) => (
+                          <label key={value} className="flex justify-center">
+                            <input
+                              type="radio"
+                              name={`question-${question.id}`}
+                              value={value}
+                              checked={answers[question.id] === value}
+                              onChange={() => handleAnswerChange(question.id, value)}
+                              className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300"
+                              required
+                            />
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Conscientiousness */}
+              <div className="border border-blue-200 rounded-xl p-5 bg-blue-50">
+                <h3 className="text-lg font-semibold text-blue-800 mb-4 border-b border-blue-200 pb-2">
+                  Conscientiousness (13-18)
+                </h3>
+                <div className="space-y-6">
+                  {questions.filter(q => q.trait === "conscientiousness").map((question) => (
+                    <div key={question.id} className="bg-white p-4 rounded-lg shadow-sm">
+                      <p className="font-medium text-gray-700 mb-3">{question.id}. {question.text}</p>
+                      <div className="grid grid-cols-5 gap-2 text-sm text-center">
+                        <div>Strongly Disagree</div>
+                        <div>Disagree</div>
+                        <div>Neutral</div>
+                        <div>Agree</div>
+                        <div>Strongly Agree</div>
+                      </div>
+                      <div className="grid grid-cols-5 gap-2 mt-2">
+                        {[1, 2, 3, 4, 5].map((value) => (
+                          <label key={value} className="flex justify-center">
+                            <input
+                              type="radio"
+                              name={`question-${question.id}`}
+                              value={value}
+                              checked={answers[question.id] === value}
+                              onChange={() => handleAnswerChange(question.id, value)}
+                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                              required
+                            />
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Openness */}
+              <div className="border border-purple-200 rounded-xl p-5 bg-purple-50">
+                <h3 className="text-lg font-semibold text-purple-800 mb-4 border-b border-purple-200 pb-2">
+                  Openness (19-24)
+                </h3>
+                <div className="space-y-6">
+                  {questions.filter(q => q.trait === "openness").map((question) => (
+                    <div key={question.id} className="bg-white p-4 rounded-lg shadow-sm">
+                      <p className="font-medium text-gray-700 mb-3">{question.id}. {question.text}</p>
+                      <div className="grid grid-cols-5 gap-2 text-sm text-center">
+                        <div>Strongly Disagree</div>
+                        <div>Disagree</div>
+                        <div>Neutral</div>
+                        <div>Agree</div>
+                        <div>Strongly Agree</div>
+                      </div>
+                      <div className="grid grid-cols-5 gap-2 mt-2">
+                        {[1, 2, 3, 4, 5].map((value) => (
+                          <label key={value} className="flex justify-center">
+                            <input
+                              type="radio"
+                              name={`question-${question.id}`}
+                              value={value}
+                              checked={answers[question.id] === value}
+                              onChange={() => handleAnswerChange(question.id, value)}
+                              className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300"
+                              required
+                            />
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Emotional Stability */}
+              <div className="border border-amber-200 rounded-xl p-5 bg-amber-50">
+                <h3 className="text-lg font-semibold text-amber-800 mb-4 border-b border-amber-200 pb-2">
+                  Emotional Stability (25-30)
+                </h3>
+                <div className="space-y-6">
+                  {questions.filter(q => q.trait === "emotionalStability").map((question) => (
+                    <div key={question.id} className="bg-white p-4 rounded-lg shadow-sm">
+                      <p className="font-medium text-gray-700 mb-3">{question.id}. {question.text}</p>
+                      <div className="grid grid-cols-5 gap-2 text-sm text-center">
+                        <div>Strongly Disagree</div>
+                        <div>Disagree</div>
+                        <div>Neutral</div>
+                        <div>Agree</div>
+                        <div>Strongly Agree</div>
+                      </div>
+                      <div className="grid grid-cols-5 gap-2 mt-2">
+                        {[1, 2, 3, 4, 5].map((value) => (
+                          <label key={value} className="flex justify-center">
+                            <input
+                              type="radio"
+                              name={`question-${question.id}`}
+                              value={value}
+                              checked={answers[question.id] === value}
+                              onChange={() => handleAnswerChange(question.id, value)}
+                              className="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300"
+                              required
+                            />
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 

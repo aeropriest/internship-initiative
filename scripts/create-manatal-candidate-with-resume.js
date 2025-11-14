@@ -10,22 +10,22 @@ const BASE_URL = 'api.manatal.com';
 // Generate unique identifier for test candidate
 const timestamp = Date.now();
 const testCandidate = {
-  full_name: `AA Test Support Request ${timestamp}`,
-  email: `aa.test.support.${timestamp}@example.com`,
-  phone_number: '+1234567890',
-  candidate_location: 'Hong Kong',
-  description: 'This is a test candidate created for Manatal support request',
-  current_position: 'Internship Applicant',
-  notes: 'This candidate has completed our personality questionnaire with the following scores:\n- Extraversion: 4.0/5\n- Conscientiousness: 4.5/5\n- Agreeableness: 4.5/5\n- Openness: 4.5/5\n- Emotional Stability: 3.5/5',
+  full_name: `Jason Miller`,
+  email: `jason.miller.${timestamp}@example.com`,
+  phone_number: '+13868683442',
+  candidate_location: 'Los Angeles, CA',
+  description: 'Experienced Amazon Associate with five years tenure in a shipping yard setting, maintaining an average picking/packing speed of 98%. Holds a zero error% score in adhering to packing specs and 97% error-free ratio on packing records.',
+  current_position: 'Amazon Warehouse Associate',
+  notes: 'This candidate has completed our personality questionnaire with the following scores:\n- Extraversion: 3.8/5\n- Conscientiousness: 4.2/5\n- Agreeableness: 4.3/5\n- Openness: 3.8/5\n- Emotional Stability: 3.5/5',
   custom_fields: {
-    application_flow: 'API Test',
-    position_applied: 'Golf Internship',
-    application_source: 'Website',
-    application_notes: 'Created for testing the questionnaire integration with Manatal support',
-    personality_extraversion: '4.00',
-    personality_conscientiousness: '4.50',
-    personality_agreeableness: '4.50',
-    personality_openness: '4.50',
+    application_flow: 'Website Application',
+    position_applied: 'Warehouse Manager',
+    application_source: 'Indeed',
+    application_notes: 'Strong candidate with excellent warehouse experience',
+    personality_extraversion: '3.80',
+    personality_conscientiousness: '4.20',
+    personality_agreeableness: '4.30',
+    personality_openness: '3.80',
     personality_emotionalstability: '3.50',
     quiz_completed: true,
     quiz_completed_at: new Date().toISOString()
@@ -200,7 +200,7 @@ async function runTest() {
     console.log(`\nCandidate created successfully with ID: ${candidateId}`);
     
     // Step 2: Upload resume
-    const resumePath = path.resolve(process.env.HOME, 'Downloads/sample-resume.jpg');
+    const resumePath = path.resolve(process.env.HOME, 'Downloads/json-miller-resume.pdf');
     if (fs.existsSync(resumePath)) {
       await uploadResume(candidateId, resumePath);
     } else {
@@ -213,7 +213,7 @@ async function runTest() {
     // We already included the quiz data in the initial creation
     // But we could update with additional fields if needed
     const additionalData = {
-      notes: `Updated notes for candidate ${candidateId}:\n\nThis candidate has completed our personality questionnaire with excellent results. The candidate shows strong traits in conscientiousness (4.5/5) and openness (4.5/5), which align well with our company values.\n\nRecommended for further consideration.`
+      notes: `Updated notes for candidate ${candidateId}:\n\nJason Miller has completed our 30-question personality questionnaire with good results. The candidate shows strong traits in conscientiousness (4.2/5) and agreeableness (4.3/5), which align well with the Warehouse Manager position requirements.\n\nHis experience at Amazon with 98% picking/packing speed and near-perfect error rates demonstrates his attention to detail and efficiency. Recommended for interview.`
     };
     
     const updateResponse = await makeRequest('PATCH', `/candidates/${candidateId}/`, additionalData);
