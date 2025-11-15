@@ -24,6 +24,9 @@ export default function FirestoreApplicationsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 10;
+  const [selectedApplicants, setSelectedApplicants] = useState<string[]>([]);
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   // Function to fetch applicants from Firebase
   const fetchApplicants = async () => {
@@ -106,13 +109,10 @@ export default function FirestoreApplicationsPage() {
       setIsLoading(true);
       
       // Delete from Firebase
-      // This would typically be an API call, but we can use the FirebaseService directly
-      // You would need to add a deleteApplication method to FirebaseService
       try {
-        // Placeholder for actual delete method
-        // await FirebaseService.deleteApplication(selectedApplicant.id);
+        await FirebaseService.deleteApplication(selectedApplicant.id);
         
-        // For now, just remove from state
+        // Update state
         const updatedApplicants = firebaseApplicants.filter(a => a.id !== selectedApplicant.id);
         setFirebaseApplicants(updatedApplicants);
         setFilteredApplicants(updatedApplicants);
@@ -128,6 +128,65 @@ export default function FirestoreApplicationsPage() {
       setError(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Handle bulk delete
+  const handleBulkDelete = () => {
+    if (selectedApplicants.length === 0) return;
+    setShowBulkDeleteConfirm(true);
+  };
+
+  // Confirm bulk delete
+  const confirmBulkDelete = async () => {
+    if (selectedApplicants.length === 0) return;
+    
+    try {
+      setIsBulkDeleting(true);
+      
+      // Delete all selected applicants
+      const deletePromises = selectedApplicants.map(id => FirebaseService.deleteApplication(id));
+      await Promise.all(deletePromises);
+      
+      // Update state
+      const updatedApplicants = firebaseApplicants.filter(a => !selectedApplicants.includes(a.id || ''));
+      setFirebaseApplicants(updatedApplicants);
+      setFilteredApplicants(updatedApplicants);
+      
+      console.log(`✅ Bulk deleted ${selectedApplicants.length} applicants from Firebase`);
+      
+      // Reset selection
+      setSelectedApplicants([]);
+      setShowBulkDeleteConfirm(false);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'An error occurred during bulk delete');
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
+  // Toggle select all applicants
+  const toggleSelectAll = () => {
+    const currentPageItems = getCurrentPageItems();
+    
+    if (selectedApplicants.length === currentPageItems.length) {
+      // If all are selected, deselect all
+      setSelectedApplicants([]);
+    } else {
+      // Otherwise, select all on current page
+      const pageIds = currentPageItems
+        .map(applicant => applicant.id || '')
+        .filter(id => id !== '');
+      setSelectedApplicants(pageIds);
+    }
+  };
+
+  // Toggle select individual applicant
+  const toggleSelectApplicant = (id: string) => {
+    if (selectedApplicants.includes(id)) {
+      setSelectedApplicants(selectedApplicants.filter(appId => appId !== id));
+    } else {
+      setSelectedApplicants([...selectedApplicants, id]);
     }
   };
 
@@ -173,44 +232,54 @@ export default function FirestoreApplicationsPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center space-x-4">
-            <h1 className="text-3xl font-bold text-gray-900">
-              <span className="flex items-center">
-                <Cloud className="h-8 w-8 mr-2 text-blue-600" />
-                Firestore Applicants
-              </span>
-            </h1>
-            <button 
-              onClick={fetchApplicants}
-              className="flex items-center space-x-1 px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-md transition-colors"
-              title="Refresh Firebase data"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-              </svg>
-              <span>Refresh</span>
-            </button>
-            <GradientButton 
-              onClick={() => router.push('/applications/manatal')}
-              className="ml-4"
-            >
-              Switch to Manatal
-            </GradientButton>
-          </div>
-          <div className="relative w-64">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
+            <div className="flex justify-between items-center mb-8">
+              <div className="flex items-center space-x-4">
+                <h1 className="text-3xl font-bold text-gray-900">
+                  <span className="flex items-center">
+                    <Cloud className="h-8 w-8 mr-2 text-blue-600" />
+                    Firestore Applicants
+                  </span>
+                </h1>
+                <button 
+                  onClick={fetchApplicants}
+                  className="flex items-center space-x-1 px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-md transition-colors"
+                  title="Refresh Firebase data"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                  </svg>
+                  <span>Refresh</span>
+                </button>
+                <GradientButton 
+                  onClick={() => router.push('/applications/manatal')}
+                  className="ml-4"
+                >
+                  Switch to Manatal
+                </GradientButton>
+                {selectedApplicants.length > 0 && (
+                  <button
+                    onClick={handleBulkDelete}
+                    className="flex items-center space-x-1 px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-md transition-colors ml-4"
+                    title="Bulk Delete Selected"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span>Delete Selected ({selectedApplicants.length})</span>
+                  </button>
+                )}
+              </div>
+              <div className="relative w-64">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search applicants..."
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
-            <input
-              type="text"
-              placeholder="Search applicants..."
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
 
         {error && (
           <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
@@ -232,6 +301,16 @@ export default function FirestoreApplicationsPage() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
+                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            checked={selectedApplicants.length === getCurrentPageItems().length && getCurrentPageItems().length > 0}
+                            onChange={toggleSelectAll}
+                          />
+                        </div>
+                      </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Name
                       </th>
@@ -254,7 +333,17 @@ export default function FirestoreApplicationsPage() {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {getCurrentPageItems().map((applicant) => (
-                      <tr key={applicant.id} className="hover:bg-gray-50">
+                      <tr key={applicant.id} className={`hover:bg-gray-50 ${selectedApplicants.includes(applicant.id || '') ? 'bg-blue-50' : ''}`}>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <input
+                              type="checkbox"
+                              className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              checked={selectedApplicants.includes(applicant.id || '')}
+                              onChange={() => applicant.id && toggleSelectApplicant(applicant.id)}
+                            />
+                          </div>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="font-medium text-gray-900">{applicant.name}</div>
                           {applicant.firstName && applicant.lastName && (
@@ -404,6 +493,31 @@ export default function FirestoreApplicationsPage() {
                 disabled={isLoading}
               >
                 {isLoading ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Delete Confirmation Dialog */}
+      {showBulkDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
+            <h3 className="text-lg font-medium mb-4">Confirm Bulk Delete</h3>
+            <p className="mb-6">Are you sure you want to delete {selectedApplicants.length} selected applicants? This action cannot be undone.</p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowBulkDeleteConfirm(false)}
+                className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmBulkDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                disabled={isBulkDeleting}
+              >
+                {isBulkDeleting ? `Deleting ${selectedApplicants.length} applicants...` : `Delete ${selectedApplicants.length} applicants`}
               </button>
             </div>
           </div>

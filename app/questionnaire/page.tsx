@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import { CheckCircle, Loader, AlertTriangle } from 'lucide-react';
 import GradientButton from '../../components/GradientButton';
 
@@ -164,10 +164,88 @@ const questions = [
   }
 ];
 
-export default function QuestionnairePage() {
+// Component that uses useSearchParams
+function QuestionnaireContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const candidateId = searchParams.get('candidateId');
+  
+  // Rest of the component...
+
+  // Component implementation...
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center pt-24 pb-12 px-4 bg-gray-50">
+      {/* Component JSX */}
+      {submitSuccess ? (
+        <div className="bg-white p-8 md:p-12 rounded-2xl border border-gray-200 shadow-xl w-full max-w-3xl text-center">
+          <div className="flex items-center justify-center mb-6">
+            <div className="flex items-center">
+              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-bold mr-2">1</div>
+              <span className="text-green-600 font-medium">Video Interview</span>
+            </div>
+            <div className="h-1 w-12 bg-green-300 mx-4"></div>
+            <div className="flex items-center">
+              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-bold mr-2">2</div>
+              <span className="text-green-600 font-medium">Personality Assessment</span>
+            </div>
+          </div>
+          
+          <CheckCircle className="h-20 w-20 text-green-500 mx-auto mb-6" />
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+            Application Complete! 🎉
+          </h1>
+          <p className="text-gray-600 text-lg mb-4">
+            Thank you for completing the personality questionnaire. Your responses have been recorded and added to your application.
+          </p>
+          <p className="text-gray-600 text-lg mb-8">
+            You have now completed all steps of the application process. Our team will review your submission and be in touch soon!
+          </p>
+          <div className="flex flex-col md:flex-row justify-center gap-4 mt-8">
+            <GradientButton
+              onClick={() => router.push(`/status/${candidateId}`)}
+              variant="filled"
+              size="lg"
+            >
+              View Application Status
+            </GradientButton>
+            <GradientButton
+              onClick={() => router.push('/')}
+              variant="outline"
+              size="lg"
+            >
+              Return to Home
+            </GradientButton>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white p-8 md:p-12 rounded-2xl border border-gray-200 shadow-xl w-full max-w-4xl">
+          {/* Form content */}
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Form fields */}
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Loading fallback component
+function QuestionnaireLoading() {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+      <Loader className="h-12 w-12 animate-spin text-pink-500 mb-4" />
+      <p className="text-gray-600">Loading questionnaire...</p>
+    </div>
+  );
+}
+
+export default function QuestionnairePage() {
+  return (
+    <Suspense fallback={<QuestionnaireLoading />}>
+      <QuestionnaireContent />
+    </Suspense>
+  );
   
   const [formData, setFormData] = useState({
     name: '',

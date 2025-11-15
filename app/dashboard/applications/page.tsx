@@ -190,14 +190,7 @@ export default function ApplicationsPage() {
       <div className="pb-5 border-b border-gray-200 sm:flex sm:items-center sm:justify-between">
         <h1 className="text-3xl font-bold leading-tight text-gray-900">Applications</h1>
         <div className="mt-3 sm:mt-0 sm:ml-4">
-          <button
-            type="button"
-            onClick={exportToCSV}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
-          >
-            <Download className="-ml-1 mr-2 h-5 w-5" />
-            Export CSV
-          </button>
+          
         </div>
       </div>
 
