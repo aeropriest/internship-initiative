@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { FirebaseService } from '../../../../../services/firebase';
 import { verify } from 'jsonwebtoken';
 
+// Mark this route as dynamic
+export const dynamic = 'force-dynamic';
+
 // Secret key for JWT verification
 const JWT_SECRET = process.env.JWT_SECRET || 'default_jwt_secret_key_change_in_production';
 

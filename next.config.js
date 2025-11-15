@@ -14,6 +14,14 @@ const nextConfig = {
     ],
     formats: ['image/webp', 'image/avif'],
   },
+  // Add this to handle dynamic API routes
+  experimental: {
+    serverComponentsExternalPackages: ['@prisma/client'],
+  },
+  // Specify which routes should be dynamic
+  output: 'standalone',
+  // Configure static generation
+  staticPageGenerationTimeout: 120,
 }
 
 module.exports = nextConfig

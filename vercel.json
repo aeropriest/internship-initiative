@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "buildCommand": "pnpm build",
+  "devCommand": "pnpm dev",
+  "installCommand": "pnpm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "env": {
+    "MANATAL_API_TOKEN": "51ce36b3ac06f113f418f0e0f47391e7471090c7",
+    "HIREFLIX_API_KEY": "dde0fc60-bd68-4166-853e-4c852faa94db",
+    "RESEND_API_KEY": "re_6BZ9WZWD_2S6nGim2jE5mYooj8GyuT59Y",
+    "HIREFLIX_POSITION_ID": "global-internship-initiative-2025",
+    "RESEND_FROM_EMAIL": "Global Internship Initiative <ashok@axarsoft.com>"
+  }
+}

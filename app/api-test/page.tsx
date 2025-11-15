@@ -225,16 +225,10 @@ export default function ApiTestPage() {
                     </p>
                     <div className="mt-2 flex flex-wrap gap-2">
                       <a 
-                        href={`/prefilled-questionnaire?candidateId=${testCandidateId}`}
+                        href={`/questionnaire?candidateId=${testCandidateId}`}
                         className="text-blue-600 hover:text-blue-800 underline"
                       >
                         Take Questionnaire as This Candidate
-                      </a>
-                      <a 
-                        href={`/prefilled-questionnaire?candidateId=${testCandidateId}&autoSubmit=true`}
-                        className="text-blue-600 hover:text-blue-800 underline"
-                      >
-                        Auto-Submit Questionnaire
                       </a>
                       <a 
                         href={`/status/${testCandidateId}`}
@@ -247,23 +241,6 @@ export default function ApiTestPage() {
                 )}
               </div>
               
-              <div>
-                <h3 className="font-medium text-gray-700 mb-2">Test Questionnaire</h3>
-                <div className="flex flex-wrap gap-2">
-                  <a 
-                    href="/prefilled-questionnaire"
-                    className="text-blue-600 hover:text-blue-800 underline"
-                  >
-                    Open Pre-filled Questionnaire
-                  </a>
-                  <a 
-                    href="/prefilled-questionnaire?autoSubmit=true"
-                    className="text-blue-600 hover:text-blue-800 underline"
-                  >
-                    Auto-Submit Questionnaire
-                  </a>
-                </div>
-              </div>
               
               <div>
                 <h3 className="font-medium text-gray-700 mb-2">View Results</h3>

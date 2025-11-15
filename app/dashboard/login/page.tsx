@@ -1,12 +1,23 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FirebaseService } from '../../../services/firebase';
 import { setCookie } from 'cookies-next';
 import { Loader, Lock, User, AlertCircle } from 'lucide-react';
 
-export default function LoginPage() {
+// Loading fallback component
+function LoginLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <Loader className="h-12 w-12 animate-spin text-pink-500 mb-4" />
+      <p className="text-gray-600 ml-3">Loading...</p>
+    </div>
+  );
+}
+
+// Component that uses useSearchParams
+function LoginContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -143,5 +154,14 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+// Main component with Suspense
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginLoading />}>
+      <LoginContent />
+    </Suspense>
   );
 }
