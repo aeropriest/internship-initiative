@@ -22,7 +22,32 @@ let analytics: Analytics | undefined;
 let storage: FirebaseStorage | undefined;
 let auth: Auth | undefined;
 
-// Initialize Firebase
+// Function to initialize Firebase (for client-side use)
+export function initializeFirebase() {
+  if (!app && firebaseConfig.apiKey) {
+    try {
+      app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+      storage = getStorage(app);
+      auth = getAuth(app);
+      
+      // Initialize analytics only on client side
+      if (typeof window !== 'undefined') {
+        try {
+          analytics = getAnalytics(app);
+        } catch (error) {
+          console.warn('Analytics not initialized:', error);
+        }
+      }
+      
+      console.log('Firebase initialized successfully');
+    } catch (error) {
+      console.error('Error initializing Firebase:', error);
+    }
+  }
+}
+
+// Initialize Firebase on import (for backward compatibility)
 if (!app && firebaseConfig.apiKey) {
   try {
     app = initializeApp(firebaseConfig);
@@ -69,6 +94,8 @@ export interface SurveyResult {
 export interface ApplicationData {
   id?: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
   phone?: string;
   location?: string;
@@ -423,6 +450,14 @@ export class FirebaseService {
       throw error;
     }
   }
+
+  // Alias for getApplications - for backward compatibility
+  static async getCandidates(): Promise<ApplicationData[]> {
+    return this.getApplications();
+  }
 }
+
+// Alias for backward compatibility
+export type CandidateData = ApplicationData;
 
 export { db, storage, auth };

@@ -113,30 +113,7 @@ export default function SurveyPage() {
     loadCandidateInfo();
   }, [candidateId]);
 
-  // For testing purposes, pre-fill the survey with consistent answers
-  useEffect(() => {
-    if (!isLoading) {
-      const preFilledAnswers: Record<string, Record<number, number>> = {
-        extraversion: {},
-        agreeableness: {},
-        conscientiousness: {},
-        openness: {},
-        emotionalStability: {}
-      };
-      
-      // Pre-fill with consistent answers for testing
-      Object.keys(surveyQuestions).forEach(category => {
-        const questions = surveyQuestions[category as keyof typeof surveyQuestions];
-        questions.forEach((_, index) => {
-          // Use a consistent pattern: 4, 5, 3, 4, 5, 3
-          const patterns = [4, 5, 3, 4, 5, 3];
-          preFilledAnswers[category][index] = patterns[index % patterns.length];
-        });
-      });
-      
-      setAnswers(preFilledAnswers);
-    }
-  }, [isLoading]);
+  // Initialize empty answers (removed prefilled answers for production)
 
   // Handle answer change
   const handleAnswerChange = (category: string, questionIndex: number, value: number) => {
