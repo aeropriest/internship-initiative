@@ -1,14 +1,29 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Users, FileText, BarChart2, Briefcase } from 'lucide-react';
+import { Users, FileText, BarChart2, Briefcase, Calendar, MapPin, Mail, Phone, ExternalLink, Loader, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
+
+interface Application {
+  id?: string;
+  name: string;
+  email: string;
+  phone?: string;
+  location?: string;
+  position?: string;
+  resumeUrl?: string;
+  passportCountry?: string;
+  golfHandicap?: string;
+  status?: string;
+  timestamp: string | Date;
+  candidateId?: string | number;
+}
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
     totalApplications: 0,
     totalQuizResults: 0,
-    recentApplications: [] as any[],
+    recentApplications: [] as Application[],
     loading: true,
     error: null as string | null
   });
@@ -43,6 +58,36 @@ export default function Dashboard() {
 
     fetchDashboardData();
   }, []);
+
+  const formatDate = (dateString: string | Date) => {
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const getStatusBadgeColor = (status: string | undefined) => {
+    switch (status) {
+      case 'Application Submitted':
+        return 'bg-green-100 text-green-800';
+      case 'Interview Scheduled':
+        return 'bg-blue-100 text-blue-800';
+      case 'Interview Completed':
+        return 'bg-purple-100 text-purple-800';
+      case 'Shortlisted':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'Offer Extended':
+        return 'bg-indigo-100 text-indigo-800';
+      case 'Offer Accepted':
+        return 'bg-teal-100 text-teal-800';
+      case 'Rejected':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   const cards = [
     {
@@ -86,16 +131,13 @@ export default function Dashboard() {
 
       {stats.loading ? (
         <div className="mt-6 flex justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-500"></div>
+          <Loader className="h-12 w-12 text-pink-500 animate-spin" />
+          <span className="sr-only">Loading...</span>
         </div>
       ) : stats.error ? (
         <div className="mt-6 bg-red-50 border-l-4 border-red-400 p-4">
           <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
+            <AlertTriangle className="h-5 w-5 text-red-400" />
             <div className="ml-3">
               <p className="text-sm text-red-700">
                 {stats.error}
@@ -135,50 +177,99 @@ export default function Dashboard() {
             ))}
           </div>
 
+          {/* Recent Applications */}
           <div className="mt-8">
-            <h2 className="text-lg font-medium text-gray-900">Recent Applications</h2>
-            <div className="mt-4 bg-white shadow overflow-hidden sm:rounded-md">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-medium text-gray-900">Recent Applications</h2>
+              <Link 
+                href="/dashboard/applications" 
+                className="text-sm font-medium text-pink-600 hover:text-pink-500"
+              >
+                View all
+              </Link>
+            </div>
+            
+            <div className="mt-4 bg-white shadow overflow-hidden sm:rounded-lg">
               {stats.recentApplications.length > 0 ? (
-                <ul className="divide-y divide-gray-200">
-                  {stats.recentApplications.map((application: any) => (
-                    <li key={application.id}>
-                      <Link
-                        href={`/dashboard/applications/${application.id}`}
-                        className="block hover:bg-gray-50"
-                      >
-                        <div className="px-4 py-4 sm:px-6">
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-pink-600 truncate">
-                              {application.name}
-                            </p>
-                            <div className="ml-2 flex-shrink-0 flex">
-                              <p className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                application.status === 'Application Submitted' 
-                                  ? 'bg-green-100 text-green-800' 
-                                  : 'bg-blue-100 text-blue-800'
-                              }`}>
-                                {application.status}
-                              </p>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Applicant
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Position
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Location
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Date
+                        </th>
+                        <th scope="col" className="relative px-6 py-3">
+                          <span className="sr-only">Actions</span>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {stats.recentApplications.map((application) => (
+                        <tr key={application.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">
+                                  {application.name}
+                                </div>
+                                <div className="text-sm text-gray-500 flex items-center">
+                                  <Mail className="h-3 w-3 mr-1" />
+                                  {application.email}
+                                </div>
+                                {application.phone && (
+                                  <div className="text-sm text-gray-500 flex items-center">
+                                    <Phone className="h-3 w-3 mr-1" />
+                                    {application.phone}
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                          <div className="mt-2 sm:flex sm:justify-between">
-                            <div className="sm:flex">
-                              <p className="flex items-center text-sm text-gray-500">
-                                <Users className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
-                                {application.position || 'No position specified'}
-                              </p>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">{application.position || 'Not specified'}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900 flex items-center">
+                              <MapPin className="h-3 w-3 mr-1" />
+                              {application.location || 'Not specified'}
                             </div>
-                            <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                              <p>
-                                Applied on {new Date(application.timestamp).toLocaleDateString()}
-                              </p>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(application.status)}`}>
+                              {application.status || 'Pending'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <div className="flex items-center">
+                              <Calendar className="h-3 w-3 mr-1" />
+                              {formatDate(application.timestamp)}
                             </div>
-                          </div>
-                        </div>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <Link 
+                              href={`/dashboard/applications/${application.id}`}
+                              className="text-pink-600 hover:text-pink-900 flex items-center justify-end"
+                            >
+                              View <ExternalLink className="ml-1 h-3 w-3" />
+                            </Link>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               ) : (
                 <div className="px-4 py-6 text-center text-sm text-gray-500">
                   No applications yet

@@ -4,8 +4,16 @@ import type { NextRequest } from 'next/server';
 // Define the paths that require authentication
 const PROTECTED_PATHS = ['/dashboard', '/dashboard/applications', '/dashboard/quiz-results'];
 
+// Define paths that should be excluded from authentication
+const PUBLIC_PATHS = ['/dashboard/login', '/dashboard/login-test'];
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  
+  // Skip authentication check for public paths
+  if (PUBLIC_PATHS.some(path => pathname === path || pathname.startsWith(`${path}/`))) {
+    return NextResponse.next();
+  }
   
   // Check if the path is protected
   const isProtectedPath = PROTECTED_PATHS.some(path => 

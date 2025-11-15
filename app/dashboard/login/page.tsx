@@ -13,7 +13,9 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
-  const from = searchParams?.get('from') || '/dashboard';
+  // Prevent redirect loops by checking if 'from' is the login page itself
+  const fromParam = searchParams?.get('from');
+  const from = fromParam && !fromParam.includes('/dashboard/login') ? fromParam : '/dashboard';
 
   // Check if we have environment variables for admin credentials
   useEffect(() => {

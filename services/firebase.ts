@@ -1,18 +1,18 @@
 import { initializeApp, FirebaseApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, getDocs, query, where, DocumentData, Timestamp, Firestore, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs, query, where, DocumentData, Timestamp, Firestore, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { getAnalytics, Analytics } from 'firebase/analytics';
 import { getStorage, ref, uploadBytes, getDownloadURL, FirebaseStorage } from 'firebase/storage';
 import { getAuth, signInWithEmailAndPassword, Auth, UserCredential } from 'firebase/auth';
 
 // Firebase configuration from environment variables
 const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.FIREBASE_APP_ID,
-  measurementId: process.env.FIREBASE_MEASUREMENT_ID
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
@@ -268,6 +268,21 @@ export class FirebaseService {
       console.log('Application updated successfully');
     } catch (error) {
       console.error('Error updating application in Firestore:', error);
+      throw error;
+    }
+  }
+  
+  static async deleteApplication(id: string): Promise<void> {
+    if (!db) {
+      throw new Error('Firestore not initialized');
+    }
+    
+    try {
+      const docRef = doc(db, 'applications', id);
+      await deleteDoc(docRef);
+      console.log('Application deleted successfully');
+    } catch (error) {
+      console.error('Error deleting application from Firestore:', error);
       throw error;
     }
   }

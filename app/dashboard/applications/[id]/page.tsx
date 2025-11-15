@@ -14,7 +14,11 @@ import {
   Calendar,
   FileText,
   ExternalLink,
-  Loader
+  Loader,
+  Edit,
+  Trash2,
+  Save,
+  X
 } from 'lucide-react';
 
 interface ApplicationDetailProps {
@@ -48,6 +52,11 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailProps
   const [application, setApplication] = useState<Application | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedApplication, setEditedApplication] = useState<Application | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     const fetchApplicationDetail = async () => {
@@ -60,6 +69,7 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailProps
         
         const data = await response.json();
         setApplication(data.application);
+        setEditedApplication(data.application);
       } catch (error) {
         console.error('Error fetching application details:', error);
         setError(error instanceof Error ? error.message : 'An error occurred');
@@ -106,6 +116,78 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailProps
     );
   }
 
+  // Handle input changes when editing
+  const handleInputChange = (field: keyof Application, value: string) => {
+    if (editedApplication) {
+      setEditedApplication({
+        ...editedApplication,
+        [field]: value
+      });
+    }
+  };
+
+  // Start editing
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  // Cancel editing
+  const handleCancelEdit = () => {
+    setEditedApplication(application);
+    setIsEditing(false);
+  };
+
+  // Save changes
+  const handleSave = async () => {
+    if (!editedApplication) return;
+    
+    setIsSaving(true);
+    try {
+      const response = await fetch(`/api/dashboard/applications/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editedApplication),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update application');
+      }
+      
+      // Update the application state with the edited values
+      setApplication(editedApplication);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating application:', error);
+      alert('Failed to update application. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Delete application
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/dashboard/applications/${id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete application');
+      }
+      
+      // Redirect to applications list
+      router.push('/dashboard/applications');
+    } catch (error) {
+      console.error('Error deleting application:', error);
+      alert('Failed to delete application. Please try again.');
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   const formatDate = (dateString: string | Date) => {
     const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
     return date.toLocaleDateString('en-US', {
@@ -121,7 +203,47 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailProps
     <div>
       <div className="pb-5 border-b border-gray-200 sm:flex sm:items-center sm:justify-between">
         <h1 className="text-3xl font-bold leading-tight text-gray-900">Application Details</h1>
-        <div className="mt-3 sm:mt-0 sm:ml-4">
+        <div className="mt-3 sm:mt-0 sm:ml-4 flex space-x-2">
+          {!isEditing ? (
+            <>
+              <button
+                onClick={handleEdit}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-pink-600 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+              >
+                <Edit className="-ml-1 mr-2 h-5 w-5" />
+                Edit
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              >
+                <Trash2 className="-ml-1 mr-2 h-5 w-5" />
+                Delete
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+              >
+                {isSaving ? (
+                  <Loader className="-ml-1 mr-2 h-5 w-5 animate-spin" />
+                ) : (
+                  <Save className="-ml-1 mr-2 h-5 w-5" />
+                )}
+                {isSaving ? 'Saving...' : 'Save'}
+              </button>
+              <button
+                onClick={handleCancelEdit}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+              >
+                <X className="-ml-1 mr-2 h-5 w-5 text-gray-500" />
+                Cancel
+              </button>
+            </>
+          )}
           <Link
             href="/dashboard/applications"
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
@@ -131,6 +253,33 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailProps
           </Link>
         </div>
       </div>
+      
+      {/* Delete confirmation modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Confirm Deletion</h3>
+            <p className="text-sm text-gray-500 mb-6">
+              Are you sure you want to delete this application? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="mt-6 bg-white shadow overflow-hidden sm:rounded-lg">
         <div className="px-4 py-5 sm:px-6">
@@ -149,7 +298,16 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailProps
                 Full name
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {application.name}
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editedApplication?.name || ''}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    className="shadow-sm focus:ring-pink-500 focus:border-pink-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                ) : (
+                  application.name
+                )}
               </dd>
             </div>
             <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -158,7 +316,16 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailProps
                 Email address
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {application.email}
+                {isEditing ? (
+                  <input
+                    type="email"
+                    value={editedApplication?.email || ''}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    className="shadow-sm focus:ring-pink-500 focus:border-pink-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                ) : (
+                  application.email
+                )}
               </dd>
             </div>
             <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -167,7 +334,16 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailProps
                 Phone number
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {application.phone || 'Not provided'}
+                {isEditing ? (
+                  <input
+                    type="tel"
+                    value={editedApplication?.phone || ''}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    className="shadow-sm focus:ring-pink-500 focus:border-pink-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                ) : (
+                  application.phone || 'Not provided'
+                )}
               </dd>
             </div>
             <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -176,7 +352,16 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailProps
                 Location
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {application.location || 'Not provided'}
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editedApplication?.location || ''}
+                    onChange={(e) => handleInputChange('location', e.target.value)}
+                    className="shadow-sm focus:ring-pink-500 focus:border-pink-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                ) : (
+                  application.location || 'Not provided'
+                )}
               </dd>
             </div>
             <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -185,7 +370,16 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailProps
                 Position applied for
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {application.position || 'Not specified'}
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editedApplication?.position || ''}
+                    onChange={(e) => handleInputChange('position', e.target.value)}
+                    className="shadow-sm focus:ring-pink-500 focus:border-pink-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                ) : (
+                  application.position || 'Not specified'
+                )}
               </dd>
             </div>
             <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -194,7 +388,16 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailProps
                 Passport country
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {application.passportCountry || 'Not provided'}
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editedApplication?.passportCountry || ''}
+                    onChange={(e) => handleInputChange('passportCountry', e.target.value)}
+                    className="shadow-sm focus:ring-pink-500 focus:border-pink-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                ) : (
+                  application.passportCountry || 'Not provided'
+                )}
               </dd>
             </div>
             <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -207,7 +410,16 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailProps
                 Golf handicap
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {application.golfHandicap || 'Not provided'}
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editedApplication?.golfHandicap || ''}
+                    onChange={(e) => handleInputChange('golfHandicap', e.target.value)}
+                    className="shadow-sm focus:ring-pink-500 focus:border-pink-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                ) : (
+                  application.golfHandicap || 'Not provided'
+                )}
               </dd>
             </div>
             <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -222,25 +434,58 @@ export default function ApplicationDetailPage({ params }: ApplicationDetailProps
             <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">Status</dt>
               <dd className="mt-1 text-sm sm:mt-0 sm:col-span-2">
-                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                  application.status === 'Application Submitted' 
-                    ? 'bg-green-100 text-green-800' 
-                    : application.status === 'Interview Completed'
-                    ? 'bg-blue-100 text-blue-800'
-                    : 'bg-gray-100 text-gray-800'
-                }`}>
-                  {application.status || 'Pending'}
-                </span>
+                {isEditing ? (
+                  <select
+                    value={editedApplication?.status || ''}
+                    onChange={(e) => handleInputChange('status', e.target.value)}
+                    className="shadow-sm focus:ring-pink-500 focus:border-pink-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  >
+                    <option value="Application Submitted">Application Submitted</option>
+                    <option value="Under Review">Under Review</option>
+                    <option value="Interview Scheduled">Interview Scheduled</option>
+                    <option value="Interview Completed">Interview Completed</option>
+                    <option value="Shortlisted">Shortlisted</option>
+                    <option value="Rejected">Rejected</option>
+                    <option value="Offer Extended">Offer Extended</option>
+                    <option value="Offer Accepted">Offer Accepted</option>
+                    <option value="Offer Declined">Offer Declined</option>
+                  </select>
+                ) : (
+                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                    application.status === 'Application Submitted' 
+                      ? 'bg-green-100 text-green-800' 
+                      : application.status === 'Interview Completed'
+                      ? 'bg-blue-100 text-blue-800'
+                      : application.status === 'Shortlisted'
+                      ? 'bg-purple-100 text-purple-800'
+                      : application.status === 'Rejected'
+                      ? 'bg-red-100 text-red-800'
+                      : application.status === 'Offer Extended' || application.status === 'Offer Accepted'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    {application.status || 'Pending'}
+                  </span>
+                )}
               </dd>
             </div>
-            {application.message && (
-              <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">Additional message</dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 whitespace-pre-line">
-                  {application.message}
-                </dd>
-              </div>
-            )}
+            <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">Additional message</dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                {isEditing ? (
+                  <textarea
+                    value={editedApplication?.message || ''}
+                    onChange={(e) => handleInputChange('message', e.target.value)}
+                    rows={4}
+                    className="shadow-sm focus:ring-pink-500 focus:border-pink-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                ) : (
+                  <div className="whitespace-pre-line">
+                    {application.message || 'No additional message'}
+                  </div>
+                )}
+              </dd>
+            </div>
             <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500 flex items-center">
                 <FileText className="mr-2 h-5 w-5 text-gray-400" />
