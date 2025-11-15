@@ -324,41 +324,39 @@ const ApplicationForm: React.FC = () => {
         timestamp: new Date().toISOString() 
       }));
 
-      // 6. Handle interview display based on status
+      // 6. Save details and redirect to survey
       setCandidateId(candidateId);
       
-      if (showIframe && interview.interview_url) {
-        setInterviewUrl(interview.interview_url);
-        setShowInterviewIframe(true);
-        setFormState('success');
-      } else {
-        // For already invited or fallback scenarios, show success message and redirect
-        setFormState('success');
-        
-        // Store the special message for the status page
-        if (interviewMessage) {
-          localStorage.setItem(`interview_message_${candidateId}`, interviewMessage);
-        }
-        
-        // Update application status with appropriate message
-        const statusMessage = interview.status === 'already_invited' 
-          ? 'Already Invited - Check Email' 
-          : interview.status === 'fallback'
-          ? 'Application Received - Team Will Contact You'
-          : 'Application Submitted';
-          
-        localStorage.setItem(`application_status_${candidateId}`, JSON.stringify({ 
-          status: statusMessage, 
-          timestamp: new Date().toISOString(),
-          interview_status: interview.status,
-          message: interviewMessage
-        }));
-        
-        // Redirect after a short delay to show success message
-        setTimeout(() => {
-          router.push(`/status/${candidateId}`);
-        }, 3000); // Increased to 3 seconds to give users time to read the message
+      // Store interview URL in localStorage for later use
+      if (interview.interview_url) {
+        localStorage.setItem(`interview_url_${candidateId}`, interview.interview_url);
       }
+      
+      // Store the special message for the status page
+      if (interviewMessage) {
+        localStorage.setItem(`interview_message_${candidateId}`, interviewMessage);
+      }
+      
+      // Update application status with appropriate message
+      const statusMessage = interview.status === 'already_invited' 
+        ? 'Already Invited - Check Email' 
+        : interview.status === 'fallback'
+        ? 'Application Received - Team Will Contact You'
+        : 'Application Submitted';
+        
+      localStorage.setItem(`application_status_${candidateId}`, JSON.stringify({ 
+        status: statusMessage, 
+        timestamp: new Date().toISOString(),
+        interview_status: interview.status,
+        message: interviewMessage
+      }));
+      
+      // Set form state to success (this won't show the success page due to our condition change)
+      setFormState('success');
+      
+      // Redirect to survey page
+      console.log(`🔄 Redirecting to survey page: /survey/${candidateId}`);
+      router.push(`/survey/${candidateId}`);
 
     } catch (error) {
       console.error('Application Submission Error:', error);
@@ -407,20 +405,22 @@ const ApplicationForm: React.FC = () => {
         }
       }
       
-      // Redirect to status page after processing
+      // Redirect to survey page after interview completion
       if (candidateId) {
-        router.push(`/status/${candidateId}`);
+        console.log(`🔄 Redirecting to survey page after interview completion: /survey/${candidateId}`);
+        router.push(`/survey/${candidateId}`);
       }
     } catch (error) {
       console.error('❌ Error processing interview results:', error);
-      // Still redirect even if processing fails
+      // Still redirect to survey page even if processing fails
       if (candidateId) {
-        router.push(`/status/${candidateId}`);
+        console.log(`🔄 Redirecting to survey page after error: /survey/${candidateId}`);
+        router.push(`/survey/${candidateId}`);
       }
     }
   };
 
-  // If showing interview iframe, render the iframe view
+  // Show interview iframe after form submission
   if (showInterviewIframe && interviewUrl) {
     return (
       <div className="fixed inset-0 bg-black z-50 flex flex-col">
@@ -527,8 +527,8 @@ const ApplicationForm: React.FC = () => {
     );
   }
 
-  // If form is in success state (for already invited or fallback scenarios), show success message
-  if (formState === 'success' && !showInterviewIframe) {
+  // We always want to show the interview iframe, never the success page
+  if (false && formState === 'success' && !showInterviewIframe) {
     const statusMessage = localStorage.getItem(`interview_message_${candidateId}`);
     
     // Get social sharing links

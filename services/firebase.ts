@@ -54,6 +54,18 @@ export interface QuizResult {
   timestamp: Date | Timestamp;
 }
 
+export interface SurveyResult {
+  id?: string;
+  candidateId?: string;
+  name?: string;
+  email: string;
+  position?: string;
+  answers: Record<string, Record<number, number>>;
+  traitScores: Record<string, number>;
+  timestamp?: Date | Timestamp;
+  applicationId?: string | null;
+}
+
 export interface ApplicationData {
   id?: string;
   name: string;
@@ -67,11 +79,16 @@ export interface ApplicationData {
   passportCountry?: string;
   golfHandicap?: string;
   message?: string;
-  candidateId?: string | number;
-  manatalUrl?: string;
-  hireflixUrl?: string;
   status?: string;
-  timestamp: Date | Timestamp;
+  candidateId?: string | number;
+  manatalCandidateId?: string | number;
+  hireflixInterviewId?: string;
+  hireflixInterviewUrl?: string;
+  hireflixInterviewStatus?: string;
+  surveyCompleted?: boolean;
+  surveyId?: string;
+  surveyCompletedAt?: Date | Timestamp;
+  timestamp?: Date | Timestamp;
   quizCompleted?: boolean;
   interviewCompleted?: boolean;
 }
@@ -302,6 +319,26 @@ export class FirebaseService {
       return docRef.id;
     } catch (error) {
       console.error('Error saving quiz result to Firestore:', error);
+      throw error;
+    }
+  }
+
+  static async saveSurveyResult(surveyResult: SurveyResult): Promise<string> {
+    try {
+      if (!db) {
+        throw new Error('Firestore not initialized');
+      }
+
+      // Add timestamp if not provided
+      if (!surveyResult.timestamp) {
+        surveyResult.timestamp = Timestamp.now();
+      }
+
+      const docRef = await addDoc(collection(db, 'surveyResults'), surveyResult);
+      console.log('Survey result saved to Firestore with ID:', docRef.id);
+      return docRef.id;
+    } catch (error) {
+      console.error('Error saving survey result to Firestore:', error);
       throw error;
     }
   }

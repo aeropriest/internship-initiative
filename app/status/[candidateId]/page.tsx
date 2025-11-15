@@ -8,7 +8,7 @@ import { createInterviewCompleteEmailHtml } from '../../../services/email';
 import {FaFacebook, FaLinkedin, FaTwitter, FaWhatsapp} from 'react-icons/fa';
 import GradientButton from '../../../components/GradientButton';
 
-type ApplicationStatus = 'Unknown' | 'Application Submitted' | 'Resume Processing' | 'Resume Uploaded' | 'Interview Scheduled' | 'Interview Completed' | 'Under Review' | 'Quiz Completed' | 'Error';
+type ApplicationStatus = 'Unknown' | 'Application Submitted' | 'Resume Processing' | 'Resume Uploaded' | 'Interview Scheduled' | 'Interview Completed' | 'Survey Completed' | 'Under Review' | 'Quiz Completed' | 'Error';
 
 interface StatusInfo {
     status: ApplicationStatus;
@@ -163,22 +163,27 @@ export default function StatusPage() {
       case 'Application Submitted':
         return {
           title: 'Application Submitted Successfully! 🎉',
-          message: 'Thank you for your application! We have received your information and resume. Please proceed with the video interview (Step 1) below.'
+          message: 'Thank you for your application! We have received your information and resume. Please proceed with the personality survey (Step 1) below.'
         };
       case 'Resume Processing':
         return {
           title: 'Processing Your Resume...',
-          message: 'Our team is reviewing your resume and qualifications. Please proceed with the video interview (Step 1) below.'
+          message: 'Our team is reviewing your resume and qualifications. Please proceed with the personality survey (Step 1) below.'
         };
       case 'Resume Uploaded':
         return {
           title: 'Resume Successfully Processed! ✅',
-          message: 'Your resume has been processed and added to your candidate profile. Please proceed with the video interview (Step 1) below.'
+          message: 'Your resume has been processed and added to your candidate profile. Please proceed with the personality survey (Step 1) below.'
+        };
+      case 'Survey Completed':
+        return {
+          title: 'Personality Survey Completed! 📝',
+          message: 'Thank you for completing your personality survey. Please proceed to the video interview (Step 2) below to complete your application.'
         };
       case 'Interview Completed':
         return {
           title: 'Video Interview Completed! 📹',
-          message: 'Thank you for completing your video interview. Please proceed to the personality questionnaire (Step 2) below to complete your application.'
+          message: 'Thank you for completing your video interview. Your application is now complete and will be reviewed by our team.'
         };
       case 'Quiz Completed':
         return {
@@ -188,7 +193,7 @@ export default function StatusPage() {
       case 'Under Review':
         return {
           title: 'Application Under Review 📋',
-          message: 'Our hiring team is reviewing your application. Please make sure you have completed both the video interview (Step 1) and personality questionnaire (Step 2) below.'
+          message: 'Our hiring team is reviewing your application. Please make sure you have completed both the personality survey (Step 1) and video interview (Step 2) below.'
         };
       case 'Error':
         return {
@@ -261,8 +266,12 @@ export default function StatusPage() {
               </p>
               <GradientButton
                 onClick={() => {
-                  // In a real implementation, you would use your actual Hireflix interview URL
-                  window.open('https://app.hireflix.com/s/interview/start', '_blank');
+                  // Get the stored interview URL from localStorage
+                  const interviewUrl = localStorage.getItem(`interview_url_${candidateId}`) || 'https://app.hireflix.com/s/interview/start';
+                  console.log(`🎬 Opening Hireflix interview URL: ${interviewUrl}`);
+                  
+                  // Open the interview in the current window
+                  window.location.href = interviewUrl;
                   
                   // For demo purposes, we'll simulate interview completion
                   setTimeout(() => {
@@ -289,33 +298,33 @@ export default function StatusPage() {
         <div className="mt-10 pt-8 border-t border-gray-200">
           <h3 className="text-xl font-semibold text-gray-700 mb-4">
             <span className="inline-flex items-center justify-center w-8 h-8 mr-2 bg-blue-600 text-white rounded-full">2</span>
-            Personality Questionnaire
+            Personality Survey
           </h3>
           
           {hasTakenSurvey ? (
             <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
               <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-3" />
-              <p className="text-green-800 font-medium mb-2">Thank you for completing the personality questionnaire!</p>
-              <p className="text-gray-600 text-sm">Your responses have been recorded and added to your application.</p>
+              <p className="text-green-800 font-medium mb-2">Personality survey completed!</p>
+              <p className="text-gray-600 text-sm">Thank you for completing your personality survey.</p>
             </div>
           ) : statusInfo.status === 'Interview Completed' ? (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
               <p className="text-gray-700 mb-4">
-                <strong>Next step:</strong> Now that you've completed your video interview, please take our personality questionnaire.
+                <strong>Next step:</strong> Now that you've completed your video interview, please take our personality survey.
                 This will help us better match you with suitable opportunities.
               </p>
               <GradientButton
-                onClick={() => router.push(`/questionnaire?candidateId=${candidateId}`)}
+                onClick={() => router.push(`/survey/${candidateId}`)}
                 variant="filled"
                 size="md"
               >
-                Take Personality Questionnaire
+                Take Personality Survey
               </GradientButton>
             </div>
           ) : (
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
               <p className="text-gray-600 mb-2">
-                <strong>Coming up:</strong> After completing your video interview, you'll be able to take our personality questionnaire.
+                <strong>Coming up:</strong> After completing your video interview, you'll be able to take our personality survey.
               </p>
             </div>
           )}

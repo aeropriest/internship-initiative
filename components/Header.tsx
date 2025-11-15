@@ -50,16 +50,6 @@ const Header: React.FC = () => {
           />
         </Link>
         <div className="flex space-x-4 items-center">
-          {isAdmin && (
-            <Link 
-              href="/answers" 
-              className="mr-2 flex items-center text-white hover:text-pink-300 transition-colors"
-              title="View Quiz Answers"
-            >
-              <ClipboardList className="h-5 w-5 mr-1" />
-              <span className="hidden md:inline">Answers</span>
-            </Link>
-          )}
           <GradientButton 
             href="/apply"
             variant="outline"
@@ -67,15 +57,6 @@ const Header: React.FC = () => {
           >
             I'm interested!
           </GradientButton>
-          {process.env.NODE_ENV === 'development' && (
-            <GradientButton 
-              href="/test-questionnaire"
-              variant="outline"
-              size="md"
-            >
-              Test Quiz
-            </GradientButton>
-          )}  
         </div>
 
       </div>
