@@ -47,6 +47,9 @@ export default function ManatalApplicationsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 10;
+  const [selectedApplicants, setSelectedApplicants] = useState<number[]>([]);
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   // Function to fetch applicants from Manatal
   const fetchApplicants = async () => {
@@ -156,6 +159,68 @@ export default function ManatalApplicationsPage() {
     }
   };
 
+  // Handle bulk delete
+  const handleBulkDelete = () => {
+    if (selectedApplicants.length === 0) return;
+    setShowBulkDeleteConfirm(true);
+  };
+
+  // Confirm bulk delete
+  const confirmBulkDelete = async () => {
+    if (selectedApplicants.length === 0) return;
+    
+    try {
+      setIsBulkDeleting(true);
+      
+      // Delete all selected applicants
+      const deletePromises = selectedApplicants.map(id => 
+        fetch(`/api/applications/${id}`, {
+          method: 'DELETE',
+        })
+      );
+      
+      await Promise.all(deletePromises);
+      
+      // Update state
+      const updatedApplicants = applicants.filter(a => !selectedApplicants.includes(a.id));
+      setApplicants(updatedApplicants);
+      setFilteredApplicants(updatedApplicants);
+      
+      console.log(`✅ Bulk deleted ${selectedApplicants.length} applicants from Manatal`);
+      
+      // Reset selection
+      setSelectedApplicants([]);
+      setShowBulkDeleteConfirm(false);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'An error occurred during bulk delete');
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
+  // Toggle select all applicants
+  const toggleSelectAll = () => {
+    const currentPageItems = getCurrentPageItems();
+    
+    if (selectedApplicants.length === currentPageItems.length) {
+      // If all are selected, deselect all
+      setSelectedApplicants([]);
+    } else {
+      // Otherwise, select all on current page
+      const pageIds = currentPageItems.map(applicant => applicant.id);
+      setSelectedApplicants(pageIds);
+    }
+  };
+
+  // Toggle select individual applicant
+  const toggleSelectApplicant = (id: number) => {
+    if (selectedApplicants.includes(id)) {
+      setSelectedApplicants(selectedApplicants.filter(appId => appId !== id));
+    } else {
+      setSelectedApplicants([...selectedApplicants, id]);
+    }
+  };
+
   // Handle view resume
   const handleViewResume = (resumeUrl: string) => {
     setSelectedResume(resumeUrl);
@@ -223,6 +288,16 @@ export default function ManatalApplicationsPage() {
             >
               Switch to Firestore
             </GradientButton>
+            {selectedApplicants.length > 0 && (
+              <button
+                onClick={handleBulkDelete}
+                className="flex items-center space-x-1 px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-md transition-colors ml-4"
+                title="Bulk Delete Selected"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>Delete Selected ({selectedApplicants.length})</span>
+              </button>
+            )}
           </div>
           <div className="relative w-64">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -258,6 +333,16 @@ export default function ManatalApplicationsPage() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
+                      <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            checked={selectedApplicants.length === getCurrentPageItems().length && getCurrentPageItems().length > 0}
+                            onChange={toggleSelectAll}
+                          />
+                        </div>
+                      </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Name
                       </th>
@@ -283,7 +368,17 @@ export default function ManatalApplicationsPage() {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {getCurrentPageItems().map((applicant) => (
-                      <tr key={applicant.id} className="hover:bg-gray-50">
+                      <tr key={applicant.id} className={`hover:bg-gray-50 ${selectedApplicants.includes(applicant.id) ? 'bg-blue-50' : ''}`}>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <input
+                              type="checkbox"
+                              className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              checked={selectedApplicants.includes(applicant.id)}
+                              onChange={() => toggleSelectApplicant(applicant.id)}
+                            />
+                          </div>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="font-medium text-gray-900">{applicant.full_name}</div>
                         </td>
@@ -436,6 +531,31 @@ export default function ManatalApplicationsPage() {
                 disabled={isLoading}
               >
                 {isLoading ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Delete Confirmation Dialog */}
+      {showBulkDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
+            <h3 className="text-lg font-medium mb-4">Confirm Bulk Delete</h3>
+            <p className="mb-6">Are you sure you want to delete {selectedApplicants.length} selected applicants? This action cannot be undone.</p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowBulkDeleteConfirm(false)}
+                className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmBulkDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                disabled={isBulkDeleting}
+              >
+                {isBulkDeleting ? `Deleting ${selectedApplicants.length} applicants...` : `Delete ${selectedApplicants.length} applicants`}
               </button>
             </div>
           </div>
