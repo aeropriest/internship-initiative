@@ -25,7 +25,40 @@ export interface ManatalResumeUpload {
 
 const MANATAL_BASE_URL = 'https://api.manatal.com/v3';
 
+export interface ManatalCandidateExtended extends ManatalCandidate {
+  full_name?: string;
+  location?: string;
+  source?: string;
+  status?: string;
+  interview_status?: string;
+  hireflix_interview_status?: string;
+  application_stage?: string;
+  custom_fields?: Record<string, any>;
+}
+
 export class ManatalService {
+  static async getAllCandidates(): Promise<ManatalCandidateExtended[]> {
+    try {
+      const response = await fetch('/api/manatal/all-candidates', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Failed to fetch candidates: ${JSON.stringify(errorData)}`);
+      }
+
+      const data = await response.json();
+      return data.candidates || [];
+    } catch (error) {
+      console.error('Error fetching Manatal candidates:', error);
+      return [];
+    }
+  }
+  
   static async createCandidate(candidateData: {
     firstName: string;
     lastName: string;
