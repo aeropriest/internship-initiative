@@ -39,21 +39,30 @@ const Header: React.FC = () => {
 
   return (
     <header className={`absolute top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-transparent shadow-md' : 'bg-transparent'}`}>
-      <div className="container mx-auto px-0 py-4 flex justify-between items-center">
-        <Link href="/" className="flex items-center space-x-3" style={{ marginLeft: '-40px' }}>
+      <div className="container mx-auto px-4 sm:px-6 md:px-0 py-3 sm:py-4 flex justify-between items-center">
+        <Link href="/" className="flex items-center space-x-3 md:ml-[-40px]">
           <Image 
             src="/logo.png" 
             alt="Logo" 
-            width={400} 
-            height={40}
-            className="object-contain"
+            width={250} 
+            height={25}
+            className="object-contain sm:w-[300px] sm:h-[30px] md:w-[400px] md:h-[40px]"
           />
         </Link>
-        <div className="flex space-x-4 items-center">
+        <div className="flex space-x-2 sm:space-x-4 items-center">
+          <GradientButton 
+            href="/apply"
+            variant="outline"
+            size="sm"
+            className="sm:hidden"
+          >
+            Apply
+          </GradientButton>
           <GradientButton 
             href="/apply"
             variant="outline"
             size="md"
+            className="hidden sm:inline-flex"
           >
             I'm interested!
           </GradientButton>

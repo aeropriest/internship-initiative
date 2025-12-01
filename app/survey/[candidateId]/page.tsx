@@ -229,10 +229,10 @@ export default function SurveyPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-gray-600">
-        <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-xl text-center">
-          <Loader className="h-12 w-12 animate-spin mx-auto mb-4 text-pink-500" />
-          <h2 className="text-xl font-bold text-gray-800 mb-2">Loading Your Survey</h2>
-          <p className="text-gray-600">Please wait while we prepare your personality assessment...</p>
+        <div className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-200 shadow-xl text-center mx-4">
+          <Loader className="h-10 w-10 sm:h-12 sm:w-12 animate-spin mx-auto mb-4 text-pink-500" />
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-2">Loading Your Survey</h2>
+          <p className="text-sm sm:text-base text-gray-600">Please wait while we prepare your personality assessment...</p>
         </div>
       </div>
     );
@@ -242,19 +242,19 @@ export default function SurveyPage() {
   // Removed the success message block
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center pt-24 pb-12 px-4 bg-gray-50">
-      <div className="bg-white p-8 md:p-12 rounded-2xl border border-gray-200 shadow-xl w-full max-w-4xl">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2 text-center">Personality Questionnaire</h1>
-        <p className="text-gray-600 text-center mb-8">
+    <div className="min-h-screen flex flex-col items-center justify-center pt-16 sm:pt-20 md:pt-24 pb-8 sm:pb-12 px-4 bg-gray-50">
+      <div className="bg-white p-4 sm:p-6 md:p-8 lg:p-12 rounded-xl sm:rounded-2xl border border-gray-200 shadow-xl w-full max-w-4xl">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 text-center">Personality Questionnaire</h1>
+        <p className="text-sm sm:text-base text-gray-600 text-center mb-6 sm:mb-8">
           Please answer all 30 questions honestly to help us understand your personality traits.
         </p>
 
         {candidateInfo && (
-          <div className="bg-gray-50 p-4 rounded-lg mb-8">
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">Your Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-gray-50 p-3 sm:p-4 rounded-lg mb-6 sm:mb-8">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-2">Your Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 text-sm sm:text-base">
               <p><span className="font-medium">Name:</span> {candidateInfo.name}</p>
-              <p><span className="font-medium">Email:</span> {candidateInfo.email}</p>
+              <p className="break-all"><span className="font-medium">Email:</span> {candidateInfo.email}</p>
               {candidateInfo.position && (
                 <p><span className="font-medium">Position:</span> {candidateInfo.position}</p>
               )}
@@ -262,35 +262,35 @@ export default function SurveyPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-12">
+        <form onSubmit={handleSubmit} className="space-y-8 sm:space-y-12">
           {Object.entries(surveyQuestions).map(([category, questions], categoryIndex) => (
-            <div key={category} className="border border-gray-200 rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            <div key={category} className="border border-gray-200 rounded-lg p-3 sm:p-4 md:p-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4">
                 {categoryIndex + 1}. {traitCategories[category as keyof typeof traitCategories]}
               </h2>
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {questions.map((question, questionIndex) => {
                   const questionNumber = categoryIndex * 6 + questionIndex + 1;
                   return (
-                    <div key={questionIndex} className="bg-gray-50 p-4 rounded-lg">
-                      <p className="font-medium text-gray-700 mb-3">{questionNumber}. {question}</p>
-                      <div className="grid grid-cols-5 gap-2 text-sm text-center">
-                        <div>Strongly Disagree</div>
-                        <div>Disagree</div>
-                        <div>Neutral</div>
-                        <div>Agree</div>
-                        <div>Strongly Agree</div>
+                    <div key={questionIndex} className="bg-gray-50 p-3 sm:p-4 rounded-lg">
+                      <p className="font-medium text-gray-700 mb-3 text-sm sm:text-base">{questionNumber}. {question}</p>
+                      <div className="grid grid-cols-5 gap-1 sm:gap-2 text-xs sm:text-sm text-center mb-2">
+                        <div className="leading-tight">Strongly Disagree</div>
+                        <div className="leading-tight">Disagree</div>
+                        <div className="leading-tight">Neutral</div>
+                        <div className="leading-tight">Agree</div>
+                        <div className="leading-tight">Strongly Agree</div>
                       </div>
-                      <div className="grid grid-cols-5 gap-2 mt-2">
+                      <div className="grid grid-cols-5 gap-1 sm:gap-2">
                         {[1, 2, 3, 4, 5].map((value) => (
-                          <label key={value} className="flex justify-center">
+                          <label key={value} className="flex justify-center items-center py-2 sm:py-0">
                             <input
                               type="radio"
                               name={`${category}-${questionIndex}`}
                               value={value}
                               checked={answers[category]?.[questionIndex] === value}
                               onChange={() => handleAnswerChange(category, questionIndex, value)}
-                              className="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300"
+                              className="h-5 w-5 sm:h-4 sm:w-4 text-pink-600 focus:ring-pink-500 border-gray-300 cursor-pointer"
                               required
                             />
                           </label>
@@ -304,25 +304,25 @@ export default function SurveyPage() {
           ))}
 
           {submitError && (
-            <div className="bg-red-50 border-l-4 border-red-400 p-4" role="alert">
+            <div className="bg-red-50 border-l-4 border-red-400 p-3 sm:p-4" role="alert">
               <div className="flex">
-                <div className="py-1"><AlertTriangle className="h-5 w-5 text-red-500 mr-3" /></div>
+                <div className="py-1"><AlertTriangle className="h-5 w-5 text-red-500 mr-2 sm:mr-3 flex-shrink-0" /></div>
                 <div>
-                  <p className="font-bold text-red-800">Submission Failed</p>
-                  <p className="text-sm text-red-700">{submitError}</p>
+                  <p className="font-bold text-red-800 text-sm sm:text-base">Submission Failed</p>
+                  <p className="text-xs sm:text-sm text-red-700">{submitError}</p>
                 </div>
               </div>
             </div>
           )}
 
-          <div className="flex justify-center pt-6">
+          <div className="flex justify-center pt-4 sm:pt-6">
             <GradientButton
               type="submit"
               disabled={isSubmitting || !isFormComplete()}
               loading={isSubmitting}
               variant="filled"
               size="lg"
-              className="w-full md:w-1/2"
+              className="w-full sm:w-3/4 md:w-1/2"
             >
               {isSubmitting ? 'Submitting...' : 'Submit Survey'}
             </GradientButton>
