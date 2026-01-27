@@ -4,7 +4,7 @@ import './globals.css';
 
 export const metadata = {
   title: 'Global Internship Initiative',
-  description: 'Connecting motivated graduates with leading clubs worldwide',
+  description: 'Connecting motivated graduates with leading golf clubs worldwide',
 };
 
 export default function RootLayout({
