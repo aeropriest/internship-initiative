@@ -10,13 +10,25 @@ export async function POST(request: NextRequest) {
     // Parse request body
     const { username, password } = await request.json();
 
+    console.log('Login attempt:', {
+      receivedUsername: username,
+      expectedUsername: ADMIN_USERNAME,
+      usernameMatch: username === ADMIN_USERNAME,
+      passwordMatch: password === ADMIN_PASSWORD,
+      hasUsername: !!username,
+      hasPassword: !!password
+    });
+
     // Validate credentials
     if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+      console.error('Authentication failed: Invalid credentials');
       return NextResponse.json(
         { success: false, message: 'Invalid credentials' },
         { status: 401 }
       );
     }
+
+    console.log('Authentication successful for user:', username);
 
     // Generate JWT token
     const token = sign(

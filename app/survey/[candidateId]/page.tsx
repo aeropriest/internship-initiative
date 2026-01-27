@@ -151,6 +151,18 @@ export default function SurveyPage() {
       return;
     }
 
+    // Validate email before submission
+    if (!candidateInfo?.email) {
+      setSubmitError('Email is required. Please ensure your candidate information is loaded.');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(candidateInfo.email)) {
+      setSubmitError('Invalid email format. Please check your email address.');
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitError('');
 
@@ -181,6 +193,7 @@ export default function SurveyPage() {
 
       // Submit survey data to API
       try {
+        console.log('Submitting survey data to API...');
         const response = await fetch('/api/survey/submit', {
           method: 'POST',
           headers: {
@@ -190,15 +203,18 @@ export default function SurveyPage() {
         });
         
         const result = await response.json();
+        console.log('API response:', result);
         
         if (!result.success) {
-          throw new Error(result.error || 'Failed to submit survey');
+          const errorMsg = result.details ? `${result.error}: ${result.details}` : result.error;
+          throw new Error(errorMsg || 'Failed to submit survey');
         }
         
         console.log('Survey submitted successfully:', result);
       } catch (apiError) {
         console.error('Error submitting survey:', apiError);
-        throw new Error('Failed to submit survey data');
+        const errorMessage = apiError instanceof Error ? apiError.message : 'Failed to submit survey data';
+        throw new Error(errorMessage);
       }
 
       // Save survey completion status to localStorage

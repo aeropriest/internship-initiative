@@ -4,22 +4,40 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { verify } from 'jsonwebtoken';
 import { FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY } from '../../../../config';
 
-// Initialize Firebase Admin SDK only if it doesn't exist
-if (!FIREBASE_PROJECT_ID || !FIREBASE_CLIENT_EMAIL || !FIREBASE_PRIVATE_KEY) {
-  throw new Error('Firebase environment variables not configured');
+let db: FirebaseFirestore.Firestore | null = null;
+
+// Lazy initialization of Firebase Admin SDK
+function getDb() {
+  if (db) return db;
+  
+  try {
+    if (!FIREBASE_PROJECT_ID || !FIREBASE_CLIENT_EMAIL || !FIREBASE_PRIVATE_KEY) {
+      console.error('Missing Firebase environment variables:', {
+        hasProjectId: !!FIREBASE_PROJECT_ID,
+        hasClientEmail: !!FIREBASE_CLIENT_EMAIL,
+        hasPrivateKey: !!FIREBASE_PRIVATE_KEY
+      });
+      throw new Error('Firebase environment variables not configured');
+    }
+
+    const adminApp = getApps().length === 0 
+      ? initializeApp({
+          credential: cert({
+            projectId: FIREBASE_PROJECT_ID,
+            clientEmail: FIREBASE_CLIENT_EMAIL,
+            privateKey: FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+          }),
+        })
+      : getApps()[0];
+
+    db = getFirestore(adminApp);
+    console.log('Firebase Admin SDK initialized successfully');
+    return db;
+  } catch (error) {
+    console.error('Failed to initialize Firebase Admin SDK:', error);
+    throw error;
+  }
 }
-
-const adminApp = getApps().length === 0 
-  ? initializeApp({
-      credential: cert({
-        projectId: FIREBASE_PROJECT_ID,
-        clientEmail: FIREBASE_CLIENT_EMAIL,
-        privateKey: FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }),
-    })
-  : getApps()[0];
-
-const db = getFirestore(adminApp);
 
 // Mark this route as dynamic
 export const dynamic = 'force-dynamic';
@@ -49,15 +67,18 @@ export async function GET(request: NextRequest) {
       );
     }
     
+    // Get database instance
+    const database = getDb();
+    
     // Fetch data from Firebase using Admin SDK
-    const applicationsSnapshot = await db.collection('applications').get();
+    const applicationsSnapshot = await database.collection('applications').get();
     const applications = applicationsSnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
     
     // Get quiz results (for future use)
-    const quizResultsSnapshot = await db.collection('quizResults').get();
+    const quizResultsSnapshot = await database.collection('quizResults').get();
     const quizResults = quizResultsSnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()

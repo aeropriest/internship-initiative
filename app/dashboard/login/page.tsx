@@ -18,7 +18,7 @@ function LoginLoading() {
 
 // Component that uses useSearchParams
 function LoginContent() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -33,7 +33,7 @@ function LoginContent() {
     // This is just to pre-fill the form with the admin username from .env
     // The actual authentication happens on the server side
     if (process.env.NEXT_PUBLIC_ADMIN_USERNAME) {
-      setEmail(process.env.NEXT_PUBLIC_ADMIN_USERNAME);
+      setUsername(process.env.NEXT_PUBLIC_ADMIN_USERNAME);
     }
   }, []);
 
@@ -49,7 +49,7 @@ function LoginContent() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       });
 
       if (!response.ok) {
@@ -96,7 +96,7 @@ function LoginContent() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
               Username
             </label>
             <div className="relative">
@@ -104,10 +104,10 @@ function LoginContent() {
                 <User className="h-5 w-5 text-gray-400" />
               </div>
               <input
-                id="email"
+                id="username"
                 type="text"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 className="pl-10 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-pink-500 focus:border-pink-500"
                 placeholder="Admin username"
                 required
