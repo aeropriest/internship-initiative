@@ -18,6 +18,11 @@ interface Application {
   status?: string;
   timestamp: string | Date;
   candidateId?: string | number;
+  hireflixInterviewId?: string;
+  hireflixInterviewUrl?: string;
+  hireflixInterviewStatus?: string;
+  interviewCompleted?: boolean;
+  surveyCompleted?: boolean;
 }
 
 export default function Dashboard() {
@@ -260,6 +265,9 @@ export default function Dashboard() {
                           Status
                         </th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Interview
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Date
                         </th>
                         <th scope="col" className="relative px-6 py-3">
@@ -302,6 +310,23 @@ export default function Dashboard() {
                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(application.status)}`}>
                               {application.status || 'Pending'}
                             </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {application.hireflixInterviewUrl ? (
+                              <a 
+                                href={application.hireflixInterviewUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-pink-600 hover:text-pink-900 text-sm flex items-center"
+                              >
+                                {application.interviewCompleted ? '✅ Completed' : '📹 Take Interview'}
+                                <ExternalLink className="ml-1 h-3 w-3" />
+                              </a>
+                            ) : application.hireflixInterviewStatus === 'already_invited' ? (
+                              <span className="text-sm text-gray-500">Already Invited</span>
+                            ) : (
+                              <span className="text-sm text-gray-400">Not Scheduled</span>
+                            )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             <div className="flex items-center">

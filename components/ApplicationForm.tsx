@@ -8,6 +8,7 @@ import { RESEND_API_KEY, RESEND_FROM_EMAIL } from '../config';
 import { createConfirmationEmailHtml } from '../services/email';
 import { HireflixService, HireflixPosition, HireflixInterviewResponse } from '../services/hireflix';
 import { ManatalService } from '../services/manatal';
+import { FirebaseClientService } from '../services/firebase-client';
 import { FirebaseService } from '../services/firebase';
 import FileDropzone from './FileDropzone';
 import GradientButton from './GradientButton';
@@ -55,51 +56,51 @@ const ApplicationForm: React.FC = () => {
     loadPositions();
   }, []);
 
-  // Check for existing candidate when email changes
-  const checkExistingCandidate = async (emailToCheck: string) => {
-    if (!emailToCheck || emailToCheck.length < 5) return;
-    
-    setCheckingExisting(true);
-    try {
-      const response = await fetch('/api/manatal/check-candidate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: emailToCheck }),
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (data.exists) {
-          console.log('✅ Found existing candidate:', data.candidate);
-          setExistingCandidate(data);
-          setFormState('existing');
-          setCandidateId(data.candidate.id);
-        } else {
-          setExistingCandidate(null);
-          if (formState === 'existing') {
-            setFormState('idle');
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error checking existing candidate:', error);
-    } finally {
-      setCheckingExisting(false);
-    }
-  };
+  // Email checking disabled - will only check at form submission
+  // const checkExistingCandidate = async (emailToCheck: string) => {
+  //   if (!emailToCheck || emailToCheck.length < 5) return;
+  //   
+  //   setCheckingExisting(true);
+  //   try {
+  //     const response = await fetch('/api/manatal/check-candidate', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({ email: emailToCheck }),
+  //     });
+  //     
+  //     if (response.ok) {
+  //       const data = await response.json();
+  //       if (data.exists) {
+  //         console.log('✅ Found existing candidate:', data.candidate);
+  //         setExistingCandidate(data);
+  //         setFormState('existing');
+  //         setCandidateId(data.candidate.id);
+  //       } else {
+  //         setExistingCandidate(null);
+  //         if (formState === 'existing') {
+  //           setFormState('idle');
+  //         }
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error('Error checking existing candidate:', error);
+  //   } finally {
+  //     setCheckingExisting(false);
+  //   }
+  // };
 
-  // Debounced email check
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (email && formState !== 'submitting') {
-        checkExistingCandidate(email);
-      }
-    }, 1000); // Check after 1 second of no typing
+  // Real-time email checking disabled
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     if (email && formState !== 'submitting') {
+  //       checkExistingCandidate(email);
+  //     }
+  //   }, 1000); // Check after 1 second of no typing
 
-    return () => clearTimeout(timer);
-  }, [email]);
+  //   return () => clearTimeout(timer);
+  // }, [email, formState]);
 
   // Listen for postMessage events to close iframe
   useEffect(() => {
@@ -184,11 +185,46 @@ const ApplicationForm: React.FC = () => {
     setFormState('submitting');
     setErrorMessage('');
 
+    // Initialize interview variables
+    let interview: any = null;
+    let interviewMessage = '';
+    let showIframe = true;
+
     // Validation
     if (!name || !email || !location || !selectedPosition || !resumeFile || !passportCountry) {
       setErrorMessage('Please fill in all required fields and upload your resume.');
       setFormState('error');
       return;
+    }
+
+    // Check if candidate already exists (only at form submission)
+    setCheckingExisting(true);
+    try {
+      const response = await fetch('/api/manatal/check-candidate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.exists) {
+          console.log('✅ Found existing candidate:', data.candidate);
+          setExistingCandidate(data);
+          setFormState('existing');
+          setCandidateId(data.candidate.id);
+          setErrorMessage('A candidate with this email already exists. Please check your email for further instructions or contact support.');
+          setFormState('error');
+          return;
+        }
+      }
+    } catch (error) {
+      console.error('Error checking existing candidate:', error);
+      // Continue with form submission even if check fails
+    } finally {
+      setCheckingExisting(false);
     }
 
     const nameParts = name.trim().split(/\s+/);
@@ -219,7 +255,7 @@ const ApplicationForm: React.FC = () => {
         const resumeUrl = await FirebaseService.uploadResume(resumeFile, candidateId.toString());
         
         // Save application data to Firestore
-        await FirebaseService.saveApplication({
+        await FirebaseClientService.saveApplication({
           name,
           email,
           phone,
@@ -231,27 +267,22 @@ const ApplicationForm: React.FC = () => {
           passportCountry,
           golfHandicap,
           message,
-          candidateId: candidateId.toString(),
-          status: 'Application Submitted',
+          status: 'Applied',
+          candidateId,
+          manatalCandidateId: candidateId,
           timestamp: new Date(),
-          quizCompleted: false,
-          interviewCompleted: false
         });
         
-        console.log('✅ Application data and resume saved to Firebase');
+        console.log('✅ Application saved to Firebase successfully');
       } catch (firebaseError) {
-        console.error('❌ Error saving to Firebase:', firebaseError);
-        // Continue even if Firebase save fails
+        console.error('❌ Firebase save error:', firebaseError);
+        // Show specific Firebase error to user
+        setErrorMessage(`Failed to save application data: ${firebaseError instanceof Error ? firebaseError.message : 'Unknown error'}. Please try again or contact support.`);
+        setFormState('error');
+        return; // Stop here if Firebase fails
       }
-
-      // 3. Add candidate to position in Manatal
-      await ManatalService.addCandidateToPosition(candidateId, selectedPosition);
-
-      // 4. Create interview in Hireflix
-      let interview;
-      let interviewMessage = '';
-      let showIframe = true;
       
+      // 4. Create Hireflix interview
       try {
         const interviewResponse = await HireflixService.createInterview(
           selectedPosition,
@@ -337,25 +368,40 @@ const ApplicationForm: React.FC = () => {
         localStorage.setItem(`interview_message_${candidateId}`, interviewMessage);
       }
       
-      // Update application status with appropriate message
-      const statusMessage = interview.status === 'already_invited' 
-        ? 'Already Invited - Check Email' 
-        : interview.status === 'fallback'
-        ? 'Application Received - Team Will Contact You'
-        : 'Application Submitted';
-        
+      // Update application with interview data
+      try {
+        await FirebaseClientService.updateApplication(candidateId.toString(), {
+          hireflixInterviewId: interview?.id,
+          hireflixInterviewUrl: interview?.interview_url,
+          hireflixInterviewStatus: interview?.status,
+          interviewCompleted: false
+        });
+        console.log('✅ Application updated with interview data');
+      } catch (updateError) {
+        console.warn('⚠️ Failed to update application with interview data:', updateError);
+        // Continue even if update fails
+      }
+      
       localStorage.setItem(`application_status_${candidateId}`, JSON.stringify({ 
-        status: statusMessage, 
-        timestamp: new Date().toISOString(),
-        interview_status: interview.status,
-        message: interviewMessage
+        status: 'Application Submitted', 
+        timestamp: new Date().toISOString() 
       }));
+
+      // 6. Save details and redirect to survey
+      setCandidateId(candidateId);
       
-      // Set form state to success (this won't show the success page due to our condition change)
+      // Store interview URL in localStorage for later use
+      if (interview?.interview_url) {
+        localStorage.setItem(`interview_url_${candidateId}`, interview.interview_url);
+      }
+      
+      // Store the special message for the status page
+      if (interviewMessage) {
+        localStorage.setItem(`interview_message_${candidateId}`, interviewMessage);
+      }
+      
+      // Set form state to success and redirect
       setFormState('success');
-      
-      // Redirect to survey page
-      console.log(`🔄 Redirecting to survey page: /survey/${candidateId}`);
       router.push(`/survey/${candidateId}`);
 
     } catch (error) {
@@ -632,12 +678,6 @@ const ApplicationForm: React.FC = () => {
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 text-left mb-2">
                     Email Address *
-                    {checkingExisting && (
-                      <span className="ml-2 text-xs text-red-500">
-                        <Loader className="inline h-3 w-3 animate-spin mr-1" />
-                        Checking existing applications...
-                      </span>
-                    )}
                   </label>
                   <div className="relative">
                     <input 
@@ -646,14 +686,10 @@ const ApplicationForm: React.FC = () => {
                       value={email} 
                       onChange={e => setEmail(e.target.value)} 
                       required 
-                      className="w-full gradient-border-input text-gray-900 pr-10"
+                      className="w-full gradient-border-input text-gray-900"
                       disabled={formState === 'submitting'}
+                      placeholder="your.email@example.com"
                     />
-                    {checkingExisting && (
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        <Loader className="h-4 w-4 animate-spin text-gray-400" />
-                      </div>
-                    )}
                   </div>
                 </div>
             </div>

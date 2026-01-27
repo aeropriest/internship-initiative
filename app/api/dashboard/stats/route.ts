@@ -1,6 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { FirebaseService } from '../../../../services/firebase';
+import { getApps, initializeApp, cert } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
 import { verify } from 'jsonwebtoken';
+import { FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY } from '../../../../config';
+
+// Initialize Firebase Admin SDK only if it doesn't exist
+if (!FIREBASE_PROJECT_ID || !FIREBASE_CLIENT_EMAIL || !FIREBASE_PRIVATE_KEY) {
+  throw new Error('Firebase environment variables not configured');
+}
+
+const adminApp = getApps().length === 0 
+  ? initializeApp({
+      credential: cert({
+        projectId: FIREBASE_PROJECT_ID,
+        clientEmail: FIREBASE_CLIENT_EMAIL,
+        privateKey: FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      }),
+    })
+  : getApps()[0];
+
+const db = getFirestore(adminApp);
 
 // Mark this route as dynamic
 export const dynamic = 'force-dynamic';
@@ -30,21 +49,24 @@ export async function GET(request: NextRequest) {
       );
     }
     
-    // Fetch data from Firebase
-    const applications = await FirebaseService.getApplications();
-    const quizResults = await FirebaseService.getQuizResults();
+    // Fetch data from Firebase using Admin SDK
+    const applicationsSnapshot = await db.collection('applications').get();
+    const applications = applicationsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    
+    // Get quiz results (for future use)
+    const quizResultsSnapshot = await db.collection('quizResults').get();
+    const quizResults = quizResultsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
     
     // Sort applications by timestamp (newest first)
     const sortedApplications = [...applications].sort((a, b) => {
-      // Handle Firestore Timestamp objects or Date objects
-      const dateA = a.timestamp instanceof Date ? a.timestamp : 
-                   (a.timestamp && typeof a.timestamp.toDate === 'function') ? 
-                   a.timestamp.toDate() : new Date(a.timestamp as any);
-      
-      const dateB = b.timestamp instanceof Date ? b.timestamp : 
-                   (b.timestamp && typeof b.timestamp.toDate === 'function') ? 
-                   b.timestamp.toDate() : new Date(b.timestamp as any);
-                   
+      const dateA = (a as any).timestamp instanceof Date ? (a as any).timestamp : new Date((a as any).timestamp as any);
+      const dateB = (b as any).timestamp instanceof Date ? (b as any).timestamp : new Date((b as any).timestamp as any);
       return dateB.getTime() - dateA.getTime();
     });
     

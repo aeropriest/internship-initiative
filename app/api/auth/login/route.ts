@@ -1,20 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sign } from 'jsonwebtoken';
+import { ADMIN_USERNAME, ADMIN_PASSWORD } from '../../../../config';
 
 // Secret key for JWT signing
 const JWT_SECRET = process.env.JWT_SECRET || 'default_jwt_secret_key_change_in_production';
 
-// Admin credentials from environment variables
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'GlobalTalentSolutions';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '18hanDicap08';
-
 export async function POST(request: NextRequest) {
   try {
     // Parse request body
-    const { email, password } = await request.json();
+    const { username, password } = await request.json();
 
     // Validate credentials
-    if (email !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+    if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
       return NextResponse.json(
         { success: false, message: 'Invalid credentials' },
         { status: 401 }
@@ -24,7 +21,7 @@ export async function POST(request: NextRequest) {
     // Generate JWT token
     const token = sign(
       { 
-        username: email,
+        username: username,
         role: 'admin',
         // Add any additional claims as needed
       },

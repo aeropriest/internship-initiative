@@ -1,6 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { FirebaseService } from '../../../../../services/firebase';
+import { getApps, initializeApp, cert } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
 import { verify } from 'jsonwebtoken';
+import { FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY } from '../../../../../config';
+
+// Initialize Firebase Admin SDK only if it doesn't exist
+if (!FIREBASE_PROJECT_ID || !FIREBASE_CLIENT_EMAIL || !FIREBASE_PRIVATE_KEY) {
+  throw new Error('Firebase environment variables not configured');
+}
+
+const adminApp = getApps().length === 0 
+  ? initializeApp({
+      credential: cert({
+        projectId: FIREBASE_PROJECT_ID,
+        clientEmail: FIREBASE_CLIENT_EMAIL,
+        privateKey: FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      }),
+    })
+  : getApps()[0];
+
+const db = getFirestore(adminApp);
 
 // Mark this route as dynamic
 export const dynamic = 'force-dynamic';
@@ -42,14 +61,17 @@ export async function GET(
     }
     
     // Fetch application from Firebase
-    const application = await FirebaseService.getApplicationById(id);
+    const docRef = db.collection('applications').doc(id);
+    const docSnap = await docRef.get();
     
-    if (!application) {
+    if (!docSnap.exists) {
       return NextResponse.json(
         { error: 'Application not found' },
         { status: 404 }
       );
     }
+    
+    const application = { id: docSnap.id, ...docSnap.data() } as any;
     
     // Process application for the response
     // Convert Firestore timestamp to ISO string for JSON serialization
@@ -97,8 +119,9 @@ export async function PUT(
     const updates = await request.json();
     
     // Check if application exists
-    const existingApplication = await FirebaseService.getApplicationById(id);
-    if (!existingApplication) {
+    const docRef = db.collection('applications').doc(id);
+    const docSnap = await docRef.get();
+    if (!docSnap.exists) {
       return NextResponse.json(
         { error: 'Application not found' },
         { status: 404 }
@@ -106,7 +129,7 @@ export async function PUT(
     }
     
     // Update application in Firebase
-    await FirebaseService.updateApplication(id, updates);
+    await docRef.update(updates);
     
     // Return success response
     return NextResponse.json({
@@ -139,8 +162,9 @@ export async function DELETE(
     }
     
     // Check if application exists
-    const existingApplication = await FirebaseService.getApplicationById(id);
-    if (!existingApplication) {
+    const docRef = db.collection('applications').doc(id);
+    const docSnap = await docRef.get();
+    if (!docSnap.exists) {
       return NextResponse.json(
         { error: 'Application not found' },
         { status: 404 }
@@ -148,7 +172,7 @@ export async function DELETE(
     }
     
     // Delete application from Firebase
-    await FirebaseService.deleteApplication(id);
+    await docRef.delete();
     
     // Return success response
     return NextResponse.json({

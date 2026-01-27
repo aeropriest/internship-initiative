@@ -1,0 +1,20 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow authenticated users (including anonymous) to upload resumes
+    match /resumes/{candidateId}_{timestamp}.{fileExtension} {
+      allow write: if request.auth != null;
+      allow read: if true; // Public read access for downloads
+    }
+    
+    // Allow read access for anyone to download resumes
+    match /resumes/{allPaths=**} {
+      allow read: if true;
+    }
+    
+    // Admin-only access for sensitive data (if needed)
+    match /admin/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.token.admin == true;
+    }
+  }
+}

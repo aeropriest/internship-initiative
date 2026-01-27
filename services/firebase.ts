@@ -1,8 +1,6 @@
 import { initializeApp, FirebaseApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, getDocs, query, where, DocumentData, Timestamp, Firestore, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { getAnalytics, Analytics } from 'firebase/analytics';
-import { getStorage, ref, uploadBytes, getDownloadURL, FirebaseStorage } from 'firebase/storage';
-import { getAuth, signInWithEmailAndPassword, Auth, UserCredential } from 'firebase/auth';
+import { getAuth, signInWithEmailAndPassword, Auth, UserCredential, signInAnonymously, User } from 'firebase/auth';
 
 // Firebase configuration from environment variables
 const firebaseConfig = {
@@ -17,9 +15,7 @@ const firebaseConfig = {
 
 // Initialize Firebase
 let app: FirebaseApp | undefined;
-let db: Firestore | undefined;
 let analytics: Analytics | undefined;
-let storage: FirebaseStorage | undefined;
 let auth: Auth | undefined;
 
 // Function to initialize Firebase (for client-side use)
@@ -27,8 +23,6 @@ export function initializeFirebase() {
   if (!app && firebaseConfig.apiKey) {
     try {
       app = initializeApp(firebaseConfig);
-      db = getFirestore(app);
-      storage = getStorage(app);
       auth = getAuth(app);
       
       // Initialize analytics only on client side
@@ -51,8 +45,6 @@ export function initializeFirebase() {
 if (!app && firebaseConfig.apiKey) {
   try {
     app = initializeApp(firebaseConfig);
-    db = getFirestore(app);
-    storage = getStorage(app);
     auth = getAuth(app);
     
     // Initialize analytics only on client side
@@ -76,7 +68,7 @@ export interface QuizResult {
   candidateId?: string;
   answers: Record<number, number>;
   traitScores: Record<string, number>;
-  timestamp: Date | Timestamp;
+  timestamp: Date;
 }
 
 export interface SurveyResult {
@@ -87,7 +79,7 @@ export interface SurveyResult {
   position?: string;
   answers: Record<string, Record<number, number>>;
   traitScores: Record<string, number>;
-  timestamp?: Date | Timestamp;
+  timestamp?: Date;
   applicationId?: string | null;
 }
 
@@ -114,8 +106,8 @@ export interface ApplicationData {
   hireflixInterviewStatus?: string;
   surveyCompleted?: boolean;
   surveyId?: string;
-  surveyCompletedAt?: Date | Timestamp;
-  timestamp?: Date | Timestamp;
+  surveyCompletedAt?: Date;
+  timestamp?: Date;
   quizCompleted?: boolean;
   interviewCompleted?: boolean;
 }
@@ -134,26 +126,85 @@ export class FirebaseService {
       throw error;
     }
   }
-  
-  // File storage methods
-  static async uploadResume(file: File, candidateId: string): Promise<string> {
-    if (!storage) {
-      throw new Error('Firebase Storage not initialized');
+
+  // Anonymous authentication for users
+  static async authenticateAnonymously(): Promise<User> {
+    if (!auth) {
+      throw new Error('Firebase Auth not initialized');
     }
     
     try {
-      // Create a storage reference
-      const fileExtension = file.name.split('.').pop();
-      const fileName = `resumes/${candidateId}_${Date.now()}.${fileExtension}`;
-      const storageRef = ref(storage, fileName);
+      const userCredential = await signInAnonymously(auth);
+      console.log('Anonymous user authenticated:', userCredential.user.uid);
+      return userCredential.user;
+    } catch (error) {
+      console.error('Anonymous authentication error:', error);
+      throw error;
+    }
+  }
+
+  // Get current authenticated user
+  static getCurrentUser(): User | null {
+    if (!auth) {
+      return null;
+    }
+    return auth.currentUser;
+  }
+
+  // Ensure user is authenticated (anonymous if not)
+  static async ensureAuthenticated(): Promise<User> {
+    const currentUser = this.getCurrentUser();
+    if (currentUser) {
+      return currentUser;
+    }
+    return await this.authenticateAnonymously();
+  }
+  
+  // File storage methods
+  static async uploadResume(file: File, candidateId: string): Promise<string> {
+    try {
+      // Ensure user is authenticated (anonymously if needed)
+      await this.ensureAuthenticated();
       
-      // Upload the file
-      await uploadBytes(storageRef, file);
+      console.log('Uploading resume to Firebase via server-side API...');
       
-      // Get the download URL
-      const downloadUrl = await getDownloadURL(storageRef);
-      console.log('Resume uploaded successfully, URL:', downloadUrl);
-      return downloadUrl;
+      // Create FormData for the API request
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('candidateId', candidateId);
+      
+      // Try Firebase upload first
+      try {
+        const response = await fetch('/api/firebase/upload-resume', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Resume uploaded successfully via Firebase, URL:', result.downloadUrl);
+          return result.downloadUrl;
+        }
+      } catch (firebaseError) {
+        console.warn('Firebase upload failed, trying fallback:', firebaseError);
+      }
+      
+      // Fallback to local upload
+      console.log('Using fallback upload method...');
+      const fallbackResponse = await fetch('/api/upload-resume', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!fallbackResponse.ok) {
+        const errorData = await fallbackResponse.json();
+        throw new Error(errorData.error || 'Failed to upload resume');
+      }
+      
+      const result = await fallbackResponse.json();
+      console.log('Resume uploaded successfully via fallback, URL:', result.downloadUrl);
+      return result.downloadUrl;
+      
     } catch (error) {
       console.error('Error uploading resume:', error);
       throw error;
@@ -162,22 +213,10 @@ export class FirebaseService {
   
   // Application methods
   static async saveApplication(application: ApplicationData): Promise<string> {
-    if (!db) {
-      throw new Error('Firestore not initialized');
-    }
-    
     try {
-      // Add timestamp if not provided
-      if (!application.timestamp) {
-        application.timestamp = Timestamp.now();
-      }
-      
-      // Remove the actual file object before saving to Firestore
-      const { resumeFile, ...applicationData } = application;
-      
-      const docRef = await addDoc(collection(db, 'applications'), applicationData);
-      console.log('Application saved to Firestore with ID:', docRef.id);
-      return docRef.id;
+      // This method should only be called from client-side
+      // Server-side code should use the admin API directly
+      throw new Error('saveApplication should only be called from client-side code');
     } catch (error) {
       console.error('Error saving application to Firestore:', error);
       throw error;
@@ -185,27 +224,9 @@ export class FirebaseService {
   }
   
   static async getApplications(): Promise<ApplicationData[]> {
-    if (!db) {
-      throw new Error('Firestore not initialized');
-    }
-    
     try {
-      const querySnapshot = await getDocs(collection(db, 'applications'));
-      const applications: ApplicationData[] = [];
-      
-      querySnapshot.forEach((doc) => {
-        const data = doc.data() as ApplicationData;
-        data.id = doc.id;
-        
-        // Convert Firestore timestamp to Date if needed
-        if (data.timestamp && typeof data.timestamp !== 'string') {
-          data.timestamp = (data.timestamp as any).toDate();
-        }
-        
-        applications.push(data);
-      });
-      
-      return applications;
+      // This method should only be called from client-side
+      throw new Error('getApplications should only be called from client-side code');
     } catch (error) {
       console.error('Error getting applications from Firestore:', error);
       throw error;
@@ -213,27 +234,9 @@ export class FirebaseService {
   }
   
   static async getApplicationById(id: string): Promise<ApplicationData | null> {
-    if (!db) {
-      throw new Error('Firestore not initialized');
-    }
-    
     try {
-      const docRef = doc(db, 'applications', id);
-      const docSnap = await getDoc(docRef);
-      
-      if (!docSnap.exists()) {
-        return null;
-      }
-      
-      const data = docSnap.data() as ApplicationData;
-      data.id = docSnap.id;
-      
-      // Convert Firestore timestamp to Date if needed
-      if (data.timestamp && typeof data.timestamp !== 'string') {
-        data.timestamp = (data.timestamp as any).toDate();
-      }
-      
-      return data;
+      // This method should only be called from client-side
+      throw new Error('getApplicationById should only be called from client-side code');
     } catch (error) {
       console.error('Error getting application by ID from Firestore:', error);
       throw error;
@@ -241,28 +244,9 @@ export class FirebaseService {
   }
   
   static async getApplicationByEmail(email: string): Promise<ApplicationData | null> {
-    if (!db) {
-      throw new Error('Firestore not initialized');
-    }
-    
     try {
-      const q = query(collection(db, 'applications'), where('email', '==', email));
-      const querySnapshot = await getDocs(q);
-      
-      if (querySnapshot.empty) {
-        return null;
-      }
-      
-      const doc = querySnapshot.docs[0];
-      const data = doc.data() as ApplicationData;
-      data.id = doc.id;
-      
-      // Convert Firestore timestamp to Date if needed
-      if (data.timestamp && typeof data.timestamp !== 'string') {
-        data.timestamp = (data.timestamp as any).toDate();
-      }
-      
-      return data;
+      // This method should only be called from client-side
+      throw new Error('getApplicationByEmail should only be called from client-side code');
     } catch (error) {
       console.error('Error getting application by email from Firestore:', error);
       throw error;
@@ -270,28 +254,9 @@ export class FirebaseService {
   }
   
   static async getApplicationByCandidateId(candidateId: string | number): Promise<ApplicationData | null> {
-    if (!db) {
-      throw new Error('Firestore not initialized');
-    }
-    
     try {
-      const q = query(collection(db, 'applications'), where('candidateId', '==', candidateId.toString()));
-      const querySnapshot = await getDocs(q);
-      
-      if (querySnapshot.empty) {
-        return null;
-      }
-      
-      const doc = querySnapshot.docs[0];
-      const data = doc.data() as ApplicationData;
-      data.id = doc.id;
-      
-      // Convert Firestore timestamp to Date if needed
-      if (data.timestamp && typeof data.timestamp !== 'string') {
-        data.timestamp = (data.timestamp as any).toDate();
-      }
-      
-      return data;
+      // This method should only be called from client-side
+      throw new Error('getApplicationByCandidateId should only be called from client-side code');
     } catch (error) {
       console.error('Error getting application by candidate ID from Firestore:', error);
       throw error;
@@ -299,17 +264,9 @@ export class FirebaseService {
   }
   
   static async updateApplication(id: string, updates: Partial<ApplicationData>): Promise<void> {
-    if (!db) {
-      throw new Error('Firestore not initialized');
-    }
-    
     try {
-      // Remove the actual file object before updating Firestore
-      const { resumeFile, ...updatesData } = updates;
-      
-      const docRef = doc(db, 'applications', id);
-      await updateDoc(docRef, updatesData);
-      console.log('Application updated successfully');
+      // This method should only be called from client-side
+      throw new Error('updateApplication should only be called from client-side code');
     } catch (error) {
       console.error('Error updating application in Firestore:', error);
       throw error;
@@ -317,138 +274,59 @@ export class FirebaseService {
   }
   
   static async deleteApplication(id: string): Promise<void> {
-    if (!db) {
-      throw new Error('Firestore not initialized');
-    }
-    
     try {
-      const docRef = doc(db, 'applications', id);
-      await deleteDoc(docRef);
-      console.log('Application deleted successfully');
+      // This method should only be called from client-side
+      throw new Error('deleteApplication should only be called from client-side code');
     } catch (error) {
       console.error('Error deleting application from Firestore:', error);
       throw error;
     }
   }
-  static async saveQuizResult(quizResult: QuizResult): Promise<string> {
-    try {
-      if (!db) {
-        throw new Error('Firestore not initialized');
-      }
-
-      // Add timestamp if not provided
-      if (!quizResult.timestamp) {
-        quizResult.timestamp = Timestamp.now();
-      }
-
-      const docRef = await addDoc(collection(db, 'quizResults'), quizResult);
-      console.log('Quiz result saved to Firestore with ID:', docRef.id);
-      return docRef.id;
-    } catch (error) {
-      console.error('Error saving quiz result to Firestore:', error);
-      throw error;
-    }
-  }
-
+  
   static async saveSurveyResult(surveyResult: SurveyResult): Promise<string> {
     try {
-      if (!db) {
-        throw new Error('Firestore not initialized');
-      }
-
-      // Add timestamp if not provided
-      if (!surveyResult.timestamp) {
-        surveyResult.timestamp = Timestamp.now();
-      }
-
-      const docRef = await addDoc(collection(db, 'surveyResults'), surveyResult);
-      console.log('Survey result saved to Firestore with ID:', docRef.id);
-      return docRef.id;
+      // This method should only be called from client-side
+      throw new Error('saveSurveyResult should only be called from client-side code');
     } catch (error) {
       console.error('Error saving survey result to Firestore:', error);
       throw error;
     }
   }
 
-  static async getQuizResults(): Promise<QuizResult[]> {
+  // Quiz result methods - now using server-side APIs
+  static async saveQuizResult(quizResult: QuizResult): Promise<string> {
     try {
-      if (!db) {
-        throw new Error('Firestore not initialized');
+      // Add timestamp if not provided
+      if (!quizResult.timestamp) {
+        quizResult.timestamp = new Date();
       }
 
-      const querySnapshot = await getDocs(collection(db, 'quizResults'));
-      const results: QuizResult[] = [];
-      
-      querySnapshot.forEach((doc) => {
-        const data = doc.data() as QuizResult;
-        // Convert Firestore timestamp to Date if needed
-        if (data.timestamp && typeof data.timestamp !== 'string') {
-          data.timestamp = (data.timestamp as any).toDate();
-        }
-        results.push(data);
-      });
-      
-      return results;
+      // For now, this method is not implemented with server-side API
+      // You can create a similar API to survey-results if needed
+      console.log('Quiz result saving not implemented with server-side API yet');
+      throw new Error('Quiz result saving not implemented');
     } catch (error) {
-      console.error('Error getting quiz results from Firestore:', error);
+      console.error('Error saving quiz result to Firestore:', error);
       throw error;
     }
+  }
+
+  static async getQuizResults(): Promise<QuizResult[]> {
+    // For now, this method is not implemented with server-side API
+    console.log('Quiz results retrieval not implemented with server-side API yet');
+    throw new Error('Quiz results retrieval not implemented');
   }
 
   static async getQuizResultByEmail(email: string): Promise<QuizResult | null> {
-    try {
-      if (!db) {
-        throw new Error('Firestore not initialized');
-      }
-
-      const q = query(collection(db, 'quizResults'), where('email', '==', email));
-      const querySnapshot = await getDocs(q);
-      
-      if (querySnapshot.empty) {
-        return null;
-      }
-      
-      const doc = querySnapshot.docs[0];
-      const data = doc.data() as QuizResult;
-      
-      // Convert Firestore timestamp to Date if needed
-      if (data.timestamp && typeof data.timestamp !== 'string') {
-        data.timestamp = (data.timestamp as any).toDate();
-      }
-      
-      return data;
-    } catch (error) {
-      console.error('Error getting quiz result by email from Firestore:', error);
-      throw error;
-    }
+    // For now, this method is not implemented with server-side API
+    console.log('Quiz result retrieval not implemented with server-side API yet');
+    throw new Error('Quiz result retrieval not implemented');
   }
 
   static async getQuizResultByCandidateId(candidateId: string): Promise<QuizResult | null> {
-    try {
-      if (!db) {
-        throw new Error('Firestore not initialized');
-      }
-
-      const q = query(collection(db, 'quizResults'), where('candidateId', '==', candidateId));
-      const querySnapshot = await getDocs(q);
-      
-      if (querySnapshot.empty) {
-        return null;
-      }
-      
-      const doc = querySnapshot.docs[0];
-      const data = doc.data() as QuizResult;
-      
-      // Convert Firestore timestamp to Date if needed
-      if (data.timestamp && typeof data.timestamp !== 'string') {
-        data.timestamp = (data.timestamp as any).toDate();
-      }
-      
-      return data;
-    } catch (error) {
-      console.error('Error getting quiz result by candidate ID from Firestore:', error);
-      throw error;
-    }
+    // For now, this method is not implemented with server-side API
+    console.log('Quiz result retrieval not implemented with server-side API yet');
+    throw new Error('Quiz result retrieval not implemented');
   }
 
   // Alias for getApplications - for backward compatibility
@@ -460,4 +338,4 @@ export class FirebaseService {
 // Alias for backward compatibility
 export type CandidateData = ApplicationData;
 
-export { db, storage, auth };
+export { auth };

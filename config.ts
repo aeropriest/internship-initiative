@@ -11,3 +11,13 @@ export const HIREFLIX_POSITION_ID = process.env.NEXT_PUBLIC_HIREFLIX_POSITION_ID
 
 // The 'from' email address for Resend. This must be a domain you have verified with Resend.
 export const RESEND_FROM_EMAIL = process.env.NEXT_PUBLIC_RESEND_FROM_EMAIL || 'Global Internship Initiative <ashok@axarsoft.com>';
+
+// Admin credentials for dashboard access
+export const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'GlobalTalentSolutions';
+export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '18hanDicap08';
+
+// Firebase Admin configuration
+export const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID || 'golfinternship';
+export const FIREBASE_CLIENT_EMAIL = process.env.FIREBASE_CLIENT_EMAIL || 'firebase-adminsdk-fbsvc@golfinternship.iam.gserviceaccount.com';
+export const FIREBASE_PRIVATE_KEY = process.env.FIREBASE_PRIVATE_KEY;
+export const FIREBASE_STORAGE_BUCKET = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'golfinternship.firebasestorage.app';
