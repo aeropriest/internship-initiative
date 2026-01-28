@@ -65,3 +65,4 @@ temp/
 Thumbs.db
 ehthumbs.db
 .vercel
+.env*.local

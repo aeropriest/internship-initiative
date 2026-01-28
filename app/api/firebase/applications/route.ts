@@ -3,33 +3,52 @@ import { getApps, initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY } from '../../../../config';
 
-// Initialize Firebase Admin SDK only if it doesn't exist
-if (!FIREBASE_PROJECT_ID || !FIREBASE_CLIENT_EMAIL || !FIREBASE_PRIVATE_KEY) {
-  throw new Error('Firebase environment variables not configured');
+let db: FirebaseFirestore.Firestore | null = null;
+
+// Lazy initialization of Firebase Admin SDK
+function getDb() {
+  if (db) return db;
+  
+  try {
+    if (!FIREBASE_PROJECT_ID || !FIREBASE_CLIENT_EMAIL || !FIREBASE_PRIVATE_KEY) {
+      console.error('Missing Firebase environment variables:', {
+        hasProjectId: !!FIREBASE_PROJECT_ID,
+        hasClientEmail: !!FIREBASE_CLIENT_EMAIL,
+        hasPrivateKey: !!FIREBASE_PRIVATE_KEY
+      });
+      throw new Error('Firebase environment variables not configured');
+    }
+
+    const adminApp = getApps().length === 0 
+      ? initializeApp({
+          credential: cert({
+            projectId: FIREBASE_PROJECT_ID,
+            clientEmail: FIREBASE_CLIENT_EMAIL,
+            privateKey: FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+          }),
+        })
+      : getApps()[0];
+
+    db = getFirestore(adminApp);
+    console.log('Firebase Admin SDK initialized successfully for applications API');
+    return db;
+  } catch (error) {
+    console.error('Failed to initialize Firebase Admin SDK:', error);
+    throw error;
+  }
 }
-
-const adminApp = getApps().length === 0 
-  ? initializeApp({
-      credential: cert({
-        projectId: FIREBASE_PROJECT_ID,
-        clientEmail: FIREBASE_CLIENT_EMAIL,
-        privateKey: FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }),
-    })
-  : getApps()[0];
-
-const db = getFirestore(adminApp);
 
 // GET - Retrieve applications
 export async function GET(request: NextRequest) {
   try {
+    const database = getDb();
     const { searchParams } = new URL(request.url);
     const email = searchParams.get('email');
     const candidateId = searchParams.get('candidateId');
 
     if (email) {
       // Get application by email
-      const q = db.collection('applications').where('email', '==', email);
+      const q = database.collection('applications').where('email', '==', email);
       const querySnapshot = await q.get();
       
       if (querySnapshot.empty) {
@@ -43,7 +62,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ exists: true, application: data });
     } else if (candidateId) {
       // Get application by candidate ID
-      const q = db.collection('applications').where('candidateId', '==', candidateId);
+      const q = database.collection('applications').where('candidateId', '==', candidateId);
       const querySnapshot = await q.get();
       
       if (querySnapshot.empty) {
@@ -57,7 +76,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ exists: true, application: data });
     } else {
       // Get all applications
-      const querySnapshot = await db.collection('applications').get();
+      const querySnapshot = await database.collection('applications').get();
       const applications = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -77,7 +96,14 @@ export async function GET(request: NextRequest) {
 // POST - Create new application
 export async function POST(request: NextRequest) {
   try {
+    const database = getDb();
     const applicationData = await request.json();
+    
+    console.log('📝 Saving application to Firestore:', {
+      email: applicationData.email,
+      name: applicationData.name,
+      candidateId: applicationData.candidateId
+    });
     
     // Add timestamp if not provided
     if (!applicationData.timestamp) {
@@ -87,8 +113,8 @@ export async function POST(request: NextRequest) {
     // Remove any file objects before saving
     const { resumeFile, ...dataToSave } = applicationData;
     
-    const docRef = await db.collection('applications').add(dataToSave);
-    console.log('Application saved to Firestore with ID:', docRef.id);
+    const docRef = await database.collection('applications').add(dataToSave);
+    console.log('✅ Application saved to Firestore with ID:', docRef.id);
     
     return NextResponse.json({
       success: true,
@@ -107,6 +133,7 @@ export async function POST(request: NextRequest) {
 // PUT - Update application
 export async function PUT(request: NextRequest) {
   try {
+    const database = getDb();
     const { id, ...updateData } = await request.json();
     
     if (!id) {
@@ -119,7 +146,7 @@ export async function PUT(request: NextRequest) {
     // Remove any file objects before updating
     const { resumeFile, ...dataToUpdate } = updateData;
     
-    await db.collection('applications').doc(id).update(dataToUpdate);
+    await database.collection('applications').doc(id).update(dataToUpdate);
     console.log('Application updated successfully:', id);
     
     return NextResponse.json({
