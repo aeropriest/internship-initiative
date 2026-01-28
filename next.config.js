@@ -20,8 +20,14 @@ const nextConfig = {
   },
   // Specify which routes should be dynamic
   output: 'standalone',
-  // Configure static generation
-  staticPageGenerationTimeout: 120,
+  // Disable static generation timeout to prevent long builds
+  staticPageGenerationTimeout: 30,
+  // Force dynamic rendering for API-heavy pages
+  trailingSlash: false,
+  // Disable static generation completely to prevent build-time API calls
+  swcMinify: true,
+  // Force all pages to be dynamic
+  generateEtags: false,
 }
 
 module.exports = nextConfig

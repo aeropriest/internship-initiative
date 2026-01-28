@@ -3,6 +3,9 @@
 import React from 'react';
 import ApplicationForm from '../../components/ApplicationForm';
 
+// Force dynamic rendering to prevent build-time API calls
+export const dynamic = 'force-dynamic';
+
 export default function ApplicationPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center pt-24 pb-12 px-4 relative overflow-hidden bg-gray-50">

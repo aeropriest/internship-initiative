@@ -5,6 +5,9 @@ import { Users, FileText, BarChart2, Briefcase, Calendar, MapPin, Mail, Phone, E
 import Link from 'next/link';
 import { ManatalService, ManatalCandidateExtended } from '../../services/manatal';
 
+// Force dynamic rendering to prevent build-time API calls
+export const dynamic = 'force-dynamic';
+
 interface Application {
   id?: string;
   name: string;
