@@ -146,12 +146,31 @@ export async function PUT(request: NextRequest) {
     // Remove any file objects before updating
     const { resumeFile, ...dataToUpdate } = updateData;
     
-    await database.collection('applications').doc(id).update(dataToUpdate);
-    console.log('Application updated successfully:', id);
+    const docRef = database.collection('applications').doc(id);
+    
+    // Check if document exists
+    const docSnapshot = await docRef.get();
+    
+    if (!docSnapshot.exists) {
+      // Create the document if it doesn't exist
+      await docRef.set({
+        ...dataToUpdate,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      console.log('Application created (was missing):', id);
+    } else {
+      // Update the existing document
+      await docRef.update({
+        ...dataToUpdate,
+        updatedAt: new Date()
+      });
+      console.log('Application updated successfully:', id);
+    }
     
     return NextResponse.json({
       success: true,
-      message: 'Application updated successfully'
+      message: docSnapshot.exists ? 'Application updated successfully' : 'Application created successfully'
     });
   } catch (error) {
     console.error('Error updating application:', error);
