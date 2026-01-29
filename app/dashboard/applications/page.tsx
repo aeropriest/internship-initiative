@@ -1,17 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { Download, Search, Filter, ArrowUpDown, Eye, Edit, Trash2, Calendar, MapPin, Mail, Phone, Briefcase, CheckCircle, XCircle, Clock, Loader } from 'lucide-react';
 import Link from 'next/link';
-import { 
-  Users, 
-  Search, 
-  Download, 
-  ChevronDown, 
-  ChevronUp, 
-  Filter,
-  X,
-  ExternalLink
-} from 'lucide-react';
+import { formatDate } from '../../../utils/dateUtils';
 
 interface Application {
   id?: string;
@@ -153,9 +145,7 @@ export default function ApplicationsPage() {
       app.passportCountry || '',
       app.golfHandicap || '',
       app.status || '',
-      app.timestamp instanceof Date 
-        ? app.timestamp.toLocaleDateString() 
-        : new Date(app.timestamp).toLocaleDateString()
+      formatDate(app.timestamp)
     ]);
     
     const csvContent = [
@@ -440,9 +430,7 @@ export default function ApplicationsPage() {
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {application.timestamp instanceof Date 
-                              ? application.timestamp.toLocaleDateString() 
-                              : new Date(application.timestamp).toLocaleDateString()}
+                            {formatDate(application.timestamp)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div className="flex items-center space-x-3 justify-end">

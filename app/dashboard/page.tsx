@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Users, FileText, BarChart2, Briefcase, Calendar, MapPin, Mail, Phone, ExternalLink, Loader, AlertTriangle, Database, Cloud } from 'lucide-react';
 import Link from 'next/link';
 import { ManatalService, ManatalCandidateExtended } from '../../services/manatal';
+import { formatDate } from '../../utils/dateUtils';
 
 // Force dynamic rendering to prevent build-time API calls
 export const dynamic = 'force-dynamic';
@@ -91,15 +92,6 @@ export default function Dashboard() {
 
     fetchManatalCandidates();
   }, [activeTab]);
-
-  const formatDate = (dateString: string | Date) => {
-    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
 
   const getStatusBadgeColor = (status: string | undefined) => {
     switch (status) {
