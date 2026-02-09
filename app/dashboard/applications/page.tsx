@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Download, Search, Filter, ArrowUpDown, Eye, Edit, Trash2, Calendar, MapPin, Mail, Phone, Briefcase, CheckCircle, XCircle, Clock, Loader } from 'lucide-react';
+import { Download, Search, Filter, ArrowUpDown, Eye, Edit, Trash2, Calendar, MapPin, Mail, Phone, Briefcase, CheckCircle, XCircle, Clock, Loader, ChevronUp, ChevronDown, X, ExternalLink, Users  } from 'lucide-react';
 import Link from 'next/link';
 import { formatDate } from '../../../utils/dateUtils';
 
